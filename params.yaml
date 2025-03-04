@@ -7,10 +7,10 @@ data_transformation: "5" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
-model_name: LGB_7
+model_name: LGB_8
 param_grid_model_desc:
-      n_estimators: 200-300
-      max_depth: 20-25
+      n_estimators: 300-400
+      max_depth: 30-35
       reg_alpha: 0
       reg_lambda: 0
       learning_rate: 0.01-0.03
