@@ -10,9 +10,9 @@ do_smote: f # t: true, f: false
 model_name: XGB_6
 param_grid_model_desc:
       n_estimators: 200
-      max_depth: 40
+      max_depth: 50
       reg_alpha: 0
-      reg_lambda: 1
+      reg_lambda: 0
       learning_rate: 0.01
       subsample: 0.9
       colsample_bytree: 0.9
