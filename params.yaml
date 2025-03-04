@@ -3,17 +3,17 @@ target_col: "HadHeartAttack"
 metric: accuracy
 
 # DATA TRANSFORMATION
-data_transformation: "6" # id của data_transformation
+data_transformation: "7" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
-model_name: LGB_9
+model_name: LGB_10
 param_grid_model_desc:
       n_estimators: 300-400
       max_depth: 30-35
       reg_alpha: 0
       reg_lambda: 0
-      learning_rate: 0.01-0.03
+      learning_rate: 0.1-0.3
       subsample: 0.9
       colsample_bytree: 0.9
 
