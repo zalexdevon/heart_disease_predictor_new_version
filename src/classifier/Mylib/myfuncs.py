@@ -792,7 +792,9 @@ def find_best_n_components_of_PCA(
             ("2", placeholdout_model),
         ]
     )
-    gs = GridSearchCV(pp, param_grid=param_grid, cv=splitter, scoring=scoring)
+    gs = GridSearchCV(
+        pp, param_grid=param_grid, cv=splitter, scoring=scoring, verbose=2
+    )
     gs.fit(features, target)
     return gs.best_params_
 
