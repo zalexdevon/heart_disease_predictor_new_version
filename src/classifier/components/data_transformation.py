@@ -62,6 +62,22 @@ class AfterFeatureColumnTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None) -> pd.DataFrame:
+        X = X.drop(
+            columns=[
+                "BlindOrVisionDifficulty_bin",
+                "HadDepressiveDisorder_bin",
+                "HadStroke_bin",
+                "DifficultyConcentrating_bin",
+                "DifficultyErrands_bin",
+                "TetanusLast10Tdap_nom_Yes__received_Tdap",
+                "HadCOPD_bin",
+                "HadSkinCancer_bin",
+                "TetanusLast10Tdap_nom_Yes__received_tetanus_shot__but_not_Tdap",
+                "HadKidneyDisease_bin",
+                "HadDiabetes_nom_No__pre_diabetes_or_borderline_diabetes",
+                "HadDiabetes_nom_Yes__but_only_during_pregnancy__female_",
+            ]
+        )
 
         self.cols = X.columns.tolist()
         return X
