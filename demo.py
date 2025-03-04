@@ -1,1 +1,1 @@
-print("Connect to new github repo from drive !!!!")
+print("Connect to heart disease predictor new version")
