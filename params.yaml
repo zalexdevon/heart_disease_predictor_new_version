@@ -7,7 +7,7 @@ data_transformation: "7" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
-model_name: XGB_3
+model_name: XGB_4
 param_grid_model_desc:
       n_estimators: 200
       max_depth: 20
@@ -17,7 +17,7 @@ param_grid_model_desc:
       subsample: 0.9
       colsample_bytree: 0.9
 
-model_trainer_type: r # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, one: only one model
+model_trainer_type: one # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, one: only one model
 N_ITER: 5 # số tổ hợp chọn khi chạy random search
 
 # MODEL EVALUATION
