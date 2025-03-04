@@ -80,6 +80,46 @@ class ModelTrainer:
 
         self.find_best_model_and_save_result(grid_search)
 
+    def train_1model(self):
+        params = myfuncs.get_params_transform_list_to_1_value(
+            self.config.param_grid_model
+        )
+        self.base_model.set_params(**params)
+        self.base_model.fit(self.train_feature_data, self.train_target_data)
+
+        self.find_val_score_1model_and_save_model()
+
+    def find_val_score_1model_and_save_model(self):
+        myfuncs.save_python_object(self.config.best_model_path, self.base_model)
+
+        while True:
+            if self.config.metric == "accuracy":
+                train_feature_pred = self.base_model.predict(self.train_feature_data)
+                self.train_score_follow_best_val = metrics.accuracy_score(
+                    self.train_target_data, train_feature_pred
+                )
+                val_feature_pred = self.base_model.predict(self.val_feature_data)
+                self.best_val_score = metrics.accuracy_score(
+                    self.val_target_data, val_feature_pred
+                )
+
+                return
+
+            if self.config.metric == "neg_log_loss":
+                train_feature_pred = self.base_model.predict_proba(
+                    self.train_feature_data
+                )
+                self.train_score_follow_best_val = metrics.log_loss(
+                    self.train_target_data, train_feature_pred
+                )
+                val_feature_pred = self.base_model.predict_proba(self.val_feature_data)
+                self.best_val_score = metrics.log_loss(
+                    self.val_target_data, val_feature_pred
+                )
+                return
+
+            return
+
     def find_best_model_and_save_result(self, searcher):
         searcher.fit(self.features, self.target)
         best_model = searcher.best_estimator_
@@ -118,17 +158,16 @@ class ModelTrainer:
         self.val_feature_data = myfuncs.load_python_object(self.config.val_feature_path)
         self.val_target_data = myfuncs.load_python_object(self.config.val_target_path)
 
-        self.features = pd.concat(
-            [self.train_feature_data, self.val_feature_data], axis=0
+        self.features, self.target, self.trainval_splitter = (
+            myfuncs.get_features_target_spliter_for_CV_train_val(
+                self.train_feature_data,
+                self.train_target_data,
+                self.val_feature_data,
+                self.val_target_data,
+            )
         )
-        self.target = pd.concat([self.train_target_data, self.val_target_data], axis=0)
 
         self.base_model = myfuncs.get_base_model(self.config.model_name)
-
-        self.trainval_splitter = PredefinedSplit(
-            test_fold=[-1] * len(self.train_feature_data)
-            + [0] * len(self.val_feature_data)
-        )
 
         result = f"P: {self.config.data_transformation}<br>{self.config.model_name}<br>"
         result += myfuncs.get_monitor_desc(self.config.param_grid_model_desc)

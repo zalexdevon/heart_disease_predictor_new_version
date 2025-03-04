@@ -856,3 +856,32 @@ def find_feature_score_by_permutation_importance(
     )
     result_df = result_df.sort_values(by="score", ascending=False)
     return result_df
+
+
+def get_params_transform_list_to_1_value(param_grid):
+    """Create params with key and one value not a list with one value
+
+    Args:
+        param_grid (_type_): value is a list with only one value
+
+    Returns:
+        dict: _description_
+
+    VD:
+    ```python
+    param_grid = {
+    "C": [1],
+    "A": [2],
+    }
+
+    Convert to
+
+    param_grid = {
+    "C": 1,
+    "A": 2,
+    }
+    ```
+    """
+
+    values = [item[0] for item in param_grid.values()]
+    return dict(zip(param_grid.keys(), values))

@@ -17,7 +17,7 @@ param_grid_model_desc:
       subsample: 0.9
       colsample_bytree: 0.9
 
-model_trainer_type: r # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal
+model_trainer_type: r # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, one: only one model
 N_ITER: 5 # số tổ hợp chọn khi chạy random search
 
 # MODEL EVALUATION

@@ -37,6 +37,10 @@ class ModelTrainerPipeline:
                 model_trainer.train_grid_train_val()
                 break
 
+            if model_trainer.config.model_trainer_type == "one":
+                model_trainer.train_1model()
+                break
+
         model_trainer.save_list_monitor_components()
 
         monitor_plot_config = config.get_monitor_plot_config()
