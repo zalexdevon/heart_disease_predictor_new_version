@@ -95,12 +95,13 @@ class ModelTrainer:
         while True:
             if self.config.metric == "accuracy":
                 train_feature_pred = self.base_model.predict(self.train_feature_data)
-                self.train_score_follow_best_val = metrics.accuracy_score(
-                    self.train_target_data, train_feature_pred
+                self.train_score_follow_best_val = (
+                    metrics.accuracy_score(self.train_target_data, train_feature_pred)
+                    * 100
                 )
                 val_feature_pred = self.base_model.predict(self.val_feature_data)
-                self.best_val_score = metrics.accuracy_score(
-                    self.val_target_data, val_feature_pred
+                self.best_val_score = (
+                    metrics.accuracy_score(self.val_target_data, val_feature_pred) * 100
                 )
 
                 return
