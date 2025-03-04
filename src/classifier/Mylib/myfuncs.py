@@ -33,6 +33,9 @@ import numpy as np
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from sklearn.base import clone
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import PCA, IncrementalPCA
+from sklearn.model_selection import GridSearchCV
 
 
 def get_sum(a, b):
@@ -724,3 +727,105 @@ def fix_name_by_LGBM_standard(cols):
     cols = pd.Series(cols)
     cols = cols.str.replace(r"[^A-Za-z0-9_]", "_", regex=True)
     return list(cols)
+
+
+def find_feature_importances(train_data, model):
+    """Find the feature importances of some models like: RF, GD, SGD, LGBM
+
+    Returns:
+        pd.DataFrame:
+    """
+
+    score = pd.DataFrame(
+        data={
+            "feature": train_data.columns.tolist(),
+            "score": model.feature_importances_,
+        }
+    )
+    score = score.sort_values(by="score", ascending=False)
+    return score
+
+
+def find_coef_with_classifier(train_data, model):
+    """Find the feature importances of some models like: LR1, LRe
+
+    Returns:
+        pd.DataFrame:
+    """
+
+    score = pd.DataFrame(
+        data={
+            "feature": train_data.columns.tolist(),
+            "score": model.coef_[0],
+        }
+    )
+    score = score.sort_values(by="score", ascending=False)
+    return score
+
+
+def find_best_n_components_of_PCA(
+    train_features,
+    train_target,
+    val_features,
+    val_target,
+    placeholdout_model,
+    list_n_components,
+    scoring="accuracy",
+):
+    """Find best n_components of PCA
+
+    Args:
+        placeholdout_model (_type_): model like LR, XGB, ... without hyperparameters except random_state
+        list_n_components (_type_): list of n_components used
+        scoring (str, optional): scoring. Defaults to "accuracy".
+
+    Returns:
+        _type_: best n_components
+    """
+    features, target, splitter = get_features_target_spliter_for_CV_train_val(
+        train_features, train_target, val_features, val_target
+    )
+    param_grid = {"1__n_components": list_n_components}
+    pp = Pipeline(
+        steps=[
+            ("1", PCA(random_state=42)),
+            ("2", placeholdout_model),
+        ]
+    )
+    gs = GridSearchCV(pp, param_grid=param_grid, cv=splitter, scoring=scoring)
+    gs.fit(features, target)
+    return gs.best_params_
+
+
+def find_best_n_components_of_PCA(
+    train_features,
+    train_target,
+    val_features,
+    val_target,
+    placeholdout_model,
+    list_n_components,
+    scoring="accuracy",
+):
+    """Find best n_components of PCA
+
+    Args:
+        placeholdout_model (_type_): model like LR, XGB, ... without hyperparameters except random_state
+        list_n_components (_type_): list of n_components used
+        scoring (str, optional): scoring. Defaults to "accuracy".
+
+    Returns:
+        _type_: best n_components
+    """
+    features, target, splitter = get_features_target_spliter_for_CV_train_val(
+        train_features, train_target, val_features, val_target
+    )
+    param_grid = {"1__n_components": list_n_components}
+    pp = Pipeline(
+        steps=[
+            ("1", PCA(random_state=42)),
+            ("2", placeholdout_model),
+        ]
+    )
+    gs = GridSearchCV(pp, param_grid=param_grid, cv=splitter, scoring=scoring)
+    gs.fit(features, target)
+    return gs.best_params_
