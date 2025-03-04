@@ -36,6 +36,7 @@ from sklearn.base import clone
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.model_selection import GridSearchCV
+from sklearn.inspection import permutation_importance
 
 
 def get_sum(a, b):
@@ -836,4 +837,22 @@ def find_best_n_components_of_PCA(
 def find_feature_score_by_permutation_importance(
     train_features, train_target, fitted_model
 ):
-    result
+    """Find the feature score by doing permutation_importance
+
+    Args:
+        fitted_model (_type_): fitted model, not base model
+
+    Returns:
+        DataFrame: _description_
+    """
+    result = permutation_importance(
+        fitted_model, train_features, train_target, n_repeats=10, random_state=42
+    )
+    result_df = pd.DataFrame(
+        data={
+            "feature": train_features.columns.tolist(),
+            "score": result.importances_mean * 100,
+        }
+    )
+    result_df = result_df.sort_values(by="score", ascending=False)
+    return result_df
