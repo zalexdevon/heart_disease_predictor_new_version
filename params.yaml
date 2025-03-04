@@ -7,13 +7,13 @@ data_transformation: "7" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
-model_name: XGB_7
+model_name: XGB_8
 param_grid_model_desc:
-      n_estimators: 200
+      n_estimators: 300
       max_depth: 50
       reg_alpha: 0
       reg_lambda: 0
-      learning_rate: 0.01
+      learning_rate: 0.1
       subsample: 0.9
       colsample_bytree: 0.9
 
