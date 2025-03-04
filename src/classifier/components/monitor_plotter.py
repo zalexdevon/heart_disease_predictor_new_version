@@ -98,5 +98,6 @@ class MonitorPlotter:
             showlegend=False,
         )
 
-        html_path = "monitor_plot.html"
-        fig.write_html(html_path, config={"displayModeBar": False})
+        fig.write_html(
+            self.config.monitor_plot_html_path, config={"displayModeBar": False}
+        )
