@@ -11,8 +11,8 @@ model_name: XGB_9
 param_grid_model_desc:
       n_estimators: 300
       max_depth: 50
-      reg_alpha: 0
-      reg_lambda: 0
+      reg_alpha: 1
+      reg_lambda: 1
       learning_rate: 0.1
       subsample: 0.9
       colsample_bytree: 0.9
