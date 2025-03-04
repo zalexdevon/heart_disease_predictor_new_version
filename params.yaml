@@ -7,13 +7,13 @@ data_transformation: "7" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
-model_name: LGB_10
+model_name: LGB_11
 param_grid_model_desc:
       n_estimators: 300-400
       max_depth: 30-35
       reg_alpha: 0
       reg_lambda: 0
-      learning_rate: 0.1-0.3
+      learning_rate: 0.01-0.03
       subsample: 0.9
       colsample_bytree: 0.9
 
