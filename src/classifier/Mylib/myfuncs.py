@@ -831,3 +831,9 @@ def find_best_n_components_of_PCA(
     gs = GridSearchCV(pp, param_grid=param_grid, cv=splitter, scoring=scoring)
     gs.fit(features, target)
     return gs.best_params_
+
+
+def find_feature_score_by_permutation_importance(
+    train_features, train_target, fitted_model
+):
+    result
