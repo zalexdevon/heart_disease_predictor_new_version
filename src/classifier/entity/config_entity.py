@@ -25,7 +25,6 @@ class ModelTrainerConfig:
     val_target_path: Path
     root_dir: Path
     best_model_path: Path
-    monitor_desc_folder_path: Path
     list_monitor_components_path: Path
 
     N_ITER: int
@@ -35,6 +34,7 @@ class ModelTrainerConfig:
     param_grid_model: dict
     model_trainer_type: str
     metric: str
+    is_first_time: str
 
 
 # MODEL_EVALUATION
@@ -43,7 +43,6 @@ class ModelEvaluationConfig:
     test_data_path: Path
     preprocessor_path: Path
     model_path: Path
-    root_dir: Path
     result: Path
     target_col: str
     metric: str
@@ -55,5 +54,4 @@ class MonitorPlotterConfig:
     monitor_plot_html_path: Path
     target_val_value: float
     max_val_value: float
-    height_for_annot: float
     dtick_y_value: float

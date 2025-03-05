@@ -126,7 +126,9 @@ class DuringFeatureColumnTransformer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         cols = pd.Series(X.columns)
-        numeric_cols = cols[cols.str.endswith("num")].tolist()
+        numeric_cols = cols[
+            cols.str.endswith("num") | cols.str.endswith("numcat")
+        ].tolist()
         nominal_cols = cols[cols.str.endswith("nom")].tolist()
         ordinal_cols = cols[
             cols.str.endswith("ord") | cols.str.endswith("bin")

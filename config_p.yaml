@@ -24,8 +24,7 @@ model_trainer:
       # T Lưu các model và kết quả
       root_dir: artifacts/model_trainer/${T}
       best_model_path: artifacts/model_trainer/${T}/best_model.pkl
-      monitor_desc_folder_path: artifacts/monitor_desc
-      list_monitor_components_path: artifacts/monitor_desc/list_monitor_components.pkl
+      list_monitor_components_path: artifacts/list_monitor_components.pkl
 
 # MODEL_EVALUATION
 model_evaluation:
@@ -34,5 +33,4 @@ model_evaluation:
       preprocessor_path: artifacts/data_transformation/${PE}/preprocessor.pkl
 
       model_path: artifacts/model_trainer/${E}/best_model.pkl
-      root_dir: artifacts/model_evaluation/
-      result: artifacts/model_evaluation/result.txt
+      result: artifacts/test_model_results.txt

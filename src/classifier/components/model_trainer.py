@@ -175,32 +175,8 @@ class ModelTrainer:
         self.monitor_desc = result
 
     def save_list_monitor_components(self):
-        if os.path.exists(self.config.list_monitor_components_path):
 
-            self.list_monitor_components = myfuncs.load_python_object(
-                self.config.list_monitor_components_path
-            )
-        else:
-            self.list_monitor_components = []
-
-        self.list_monitor_components += [
-            (
-                self.monitor_desc,
-                self.train_score_follow_best_val,
-                self.best_val_score,
-            )
-        ]
-        myfuncs.save_python_object(
-            self.config.list_monitor_components_path, self.list_monitor_components
-        )
-
-    def save_list_monitor_components(self):
-        with open("artifacts/run_count.txt", "r") as file:
-            run_count = int(file.read())
-        with open("artifacts/run_count.txt", "w") as file:
-            file.write(str(run_count + 1))
-
-        if run_count > 0:
+        if self.config.is_first_time == "f":
 
             self.list_monitor_components = myfuncs.load_python_object(
                 self.config.list_monitor_components_path

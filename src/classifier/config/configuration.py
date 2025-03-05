@@ -48,7 +48,7 @@ class ConfigurationManager:
     ) -> ModelTrainerConfig:
         config = self.config.model_trainer
 
-        create_directories([config.root_dir, config.monitor_desc_folder_path])
+        create_directories([config.root_dir])
 
         param_grid_model = myfuncs.get_param_grid_model(
             self.params.param_grid_model_desc
@@ -61,7 +61,6 @@ class ConfigurationManager:
             val_target_path=config.val_target_path,
             root_dir=config.root_dir,
             best_model_path=config.best_model_path,
-            monitor_desc_folder_path=config.monitor_desc_folder_path,
             list_monitor_components_path=config.list_monitor_components_path,
             model_name=self.params.model_name,
             param_grid_model_desc=self.params.param_grid_model_desc,
@@ -70,6 +69,7 @@ class ConfigurationManager:
             N_ITER=self.params.N_ITER,
             model_trainer_type=self.params.model_trainer_type,
             metric=self.params.metric,
+            is_first_time=self.params.is_first_time,
         )
 
         return model_trainer_config
@@ -78,13 +78,10 @@ class ConfigurationManager:
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
 
-        create_directories([config.root_dir])
-
         obj = ModelEvaluationConfig(
             test_data_path=config.test_data_path,
             preprocessor_path=config.preprocessor_path,
             model_path=config.model_path,
-            root_dir=config.root_dir,
             result=config.result,
             target_col=config.target_col,
             metric=config.metric,
@@ -100,7 +97,6 @@ class ConfigurationManager:
             monitor_plot_html_path=config.monitor_plot_html_path,
             target_val_value=config.target_val_value,
             max_val_value=config.max_val_value,
-            height_for_annot=config.height_for_annot,
             dtick_y_value=config.dtick_y_value,
         )
 

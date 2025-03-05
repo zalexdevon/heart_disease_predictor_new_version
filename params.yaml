@@ -7,6 +7,7 @@ data_transformation: "7" # id của data_transformation
 do_smote: f # t: true, f: false
 
 # MODEL TRAINING
+is_first_time: f # t or f
 model_name: XGB_12
 param_grid_model_desc:
       n_estimators: 300
@@ -29,5 +30,4 @@ monitor_plotter:
       monitor_plot_html_path: "artifacts/monitor_plot.html"
       target_val_value: 97
       max_val_value: 100
-      height_for_annot: 20
       dtick_y_value: 5

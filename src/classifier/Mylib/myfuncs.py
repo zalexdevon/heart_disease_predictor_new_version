@@ -39,6 +39,22 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.inspection import permutation_importance
 
 
+BASE_MODELS = {
+    "LR": LogisticRegression(random_state=42),
+    "LRe": LogisticRegression(penalty="elasticnet", solver="saga", random_state=42),
+    "LR1": LogisticRegression(penalty="l1", solver="saga", random_state=42),
+    "LSVC": LinearSVC(random_state=42),
+    "SVCP": SVC(kernel="poly", degree=2, random_state=42),
+    "SVCR": SVC(kernel="rbf", random_state=42),
+    "RF": RandomForestClassifier(random_state=42),
+    "ET": ExtraTreesClassifier(random_state=42),
+    "GB": GradientBoostingClassifier(random_state=42),
+    "SGD": GradientBoostingClassifier(random_state=42),
+    "XGB": XGBClassifier(random_state=42),
+    "LGB": LGBMClassifier(verbose=-1, random_state=42),
+}
+
+
 def get_sum(a, b):
     """Demo function for the library"""
     return a + b
@@ -581,27 +597,6 @@ def encodeImageIntoBase64(croppedImagePath):
         return base64.b64encode(f.read())
 
 
-def create_param_grid_from_param_grid_for_transformer_and_for_model(
-    param_transformer: dict, param_model: dict
-):
-    a = param_transformer
-    b = param_model
-
-    c_key = []
-    c_value = []
-    if a is not None:
-        a_key = ["transform__" + item for item in a.keys()]
-        c_key = a_key
-        c_value = list(a.values())
-
-    b_key = ["model__" + item for item in b.keys()]
-
-    c_key += b_key
-    c_value += list(b.values())
-
-    return dict(zip(c_key, c_value))
-
-
 def unindent_all_lines(content):
     content = content.strip("\n")
     lines = content.split("\n")
@@ -627,6 +622,12 @@ def get_monitor_desc(param_grid_model_desc: dict):
 
 
 def process_param_name(name):
+    """if param name is max_depth -> max
+
+    if param name is C -> C\_\_
+
+    """
+
     if len(name) == 3:
         return name
 
@@ -637,6 +638,23 @@ def process_param_name(name):
 
 
 def get_param_grid_model(param_grid_model: dict):
+    """Get param grid from file params.yaml
+
+    VD:
+    ```python
+    In params.yaml
+    param_grid_model_desc:
+      alpha: 0.2-0.7-0.1
+      l1_ratio: 0.2-0.4
+
+    convert to
+    param_grid = {
+        "alpha": np.arange(0.2, 0.7, 0.1)
+        "l1_ratio": [0.2, 0.3, 0.4]
+    }
+    ``
+    """
+
     values = param_grid_model.values()
 
     values = [get_range_for_param(str(item)) for item in values]
@@ -644,29 +662,10 @@ def get_param_grid_model(param_grid_model: dict):
     return dict(zip(list(param_grid_model.keys()), values))
 
 
-BASE_MODELS = {
-    "LR": LogisticRegression(random_state=42),
-    "LRe": LogisticRegression(penalty="elasticnet", solver="saga", random_state=42),
-    "LR1": LogisticRegression(penalty="l1", solver="saga", random_state=42),
-    "LSVC": LinearSVC(random_state=42),
-    "SVCP": SVC(kernel="poly", degree=2, random_state=42),
-    "SVCR": SVC(kernel="rbf", random_state=42),
-    "RF": RandomForestClassifier(random_state=42),
-    "ET": ExtraTreesClassifier(random_state=42),
-    "GB": GradientBoostingClassifier(random_state=42),
-    "SGD": GradientBoostingClassifier(random_state=42),
-    "XGB": XGBClassifier(random_state=42),
-    "LGB": LGBMClassifier(verbose=-1, random_state=42),
-}
-
-
 def get_base_model(model_name: str):
     """Get the Model object from model_name <br>
 
-
-    Args:
-        model_name (str): format = model_name_real_blabla
-
+    VD: XGB_1 -> XGB -> XGBRegressor
     """
 
     model_name_real = model_name.split("_")[0]
@@ -757,47 +756,11 @@ def find_coef_with_classifier(train_data, model):
     score = pd.DataFrame(
         data={
             "feature": train_data.columns.tolist(),
-            "score": model.coef_[0],
+            "score": np.abs(model.coef_[0]),
         }
     )
     score = score.sort_values(by="score", ascending=False)
     return score
-
-
-def find_best_n_components_of_PCA(
-    train_features,
-    train_target,
-    val_features,
-    val_target,
-    placeholdout_model,
-    list_n_components,
-    scoring="accuracy",
-):
-    """Find best n_components of PCA
-
-    Args:
-        placeholdout_model (_type_): model like LR, XGB, ... without hyperparameters except random_state
-        list_n_components (_type_): list of n_components used
-        scoring (str, optional): scoring. Defaults to "accuracy".
-
-    Returns:
-        _type_: best n_components
-    """
-    features, target, splitter = get_features_target_spliter_for_CV_train_val(
-        train_features, train_target, val_features, val_target
-    )
-    param_grid = {"1__n_components": list_n_components}
-    pp = Pipeline(
-        steps=[
-            ("1", PCA(random_state=42)),
-            ("2", placeholdout_model),
-        ]
-    )
-    gs = GridSearchCV(
-        pp, param_grid=param_grid, cv=splitter, scoring=scoring, verbose=2
-    )
-    gs.fit(features, target)
-    return gs.best_params_
 
 
 def find_best_n_components_of_PCA(
@@ -885,3 +848,21 @@ def get_params_transform_list_to_1_value(param_grid):
 
     values = [item[0] for item in param_grid.values()]
     return dict(zip(param_grid.keys(), values))
+
+
+def get_describe_stats_for_numeric_cat_cols(data):
+    """Get descriptive statistics of numeric cat cols, including min, max, median
+
+    Args:
+        data (_type_): numeric cat cols
+    Returns:
+        Dataframe: min, max, median
+    """
+
+    min_of_cols = data.min().to_frame(name="min")
+    max_of_cols = data.max().to_frame(name="max")
+    median_of_cols = data.quantile([0.5]).T.rename(columns={0.5: "median"})
+
+    result = pd.concat([min_of_cols, max_of_cols, median_of_cols], axis=1).T
+
+    return result
