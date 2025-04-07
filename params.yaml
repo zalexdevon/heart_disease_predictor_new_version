@@ -19,7 +19,7 @@ data_transformation:
 
 # MODEL TRAINING
 model_trainer: 
-      model_name: XGB_17
+      model_name: XGB_18
       model_training_type: r  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
       # Cần cho model_training_type = rcv, gcv, r, g
       base_model: XGBClassifier(random_state=42)

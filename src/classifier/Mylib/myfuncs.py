@@ -1503,9 +1503,9 @@ def evaluate_model_on_one_scoring_17(model, feature, target, scoring):
 def get_classification_report_18(model, feature, target, class_names):
     """Tạo classfication report cho classifier"""
     class_names = np.asarray(class_names)
-    target = class_names[target]
+    target = class_names[target.tolist()]
     prediction = model.predict(feature)
-    prediction = class_names[prediction]
+    prediction = class_names[prediction.tolist()]
     return metrics.classification_report(target, prediction)
 
 
@@ -1536,12 +1536,12 @@ def evaluate_classifier_on_test_data_18(model, feature_data, target_data, class_
 def evaluate_regressor_on_test_data_18(
     model, feature_data, target_data, class_names=None
 ):
-    """Đánh giá chung cho 1 classifier
+    """Đánh giá chung cho 1 regressor
 
     Định dạng của kết quả:
-        Accuracy:
+        RMSE:
 
-        Classification_report:
+        MAE:
 
     """
     train_rmse = evaluate_model_on_one_scoring_17(
