@@ -1503,9 +1503,13 @@ def evaluate_model_on_one_scoring_17(model, feature, target, scoring):
 def get_classification_report_18(model, feature, target, class_names):
     """Tạo classfication report cho classifier"""
     class_names = np.asarray(class_names)
-    target = class_names[target.tolist()]
+
+    target = [int(item) for item in target]
+    target = class_names[target]
+
     prediction = model.predict(feature)
-    prediction = class_names[prediction.tolist()]
+    prediction = [int(item) for item in prediction]
+    prediction = class_names[prediction]
     return metrics.classification_report(target, prediction)
 
 
