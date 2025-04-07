@@ -56,7 +56,7 @@ class ManyModelsTypeModelTrainer:
         self.train_scorings = []
         self.val_scorings = []
         for index, model in enumerate(self.models):
-            model.fit(self.val_feature_data, self.train_target_data)
+            model.fit(self.train_feature_data, self.train_target_data)
             train_scoring = myfuncs.evaluate_model_on_one_scoring_17(
                 model,
                 self.train_feature_data,
