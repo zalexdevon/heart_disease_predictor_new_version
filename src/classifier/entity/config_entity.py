@@ -68,6 +68,7 @@ class ModelTrainerConfig:
 
     # common params
     scoring: str
+    target_score: float
 
 
 # TEST DATA CORRECTION

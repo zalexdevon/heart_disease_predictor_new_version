@@ -68,7 +68,16 @@ class ManyModelsTypeModelTrainer:
                 "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
             )
 
-    def find_best_model_and_scoring(self):
+    def find_train_val_scorings_for_models(self):
+        sign_for_score = 1  # Nếu scoring là loss thì lấy âm -> quy về tìm lớn nhất thôi
+        if (
+            self.config.scoring == "log_loss"
+            or self.config.scoring == "mse"
+            or self.config.scoring == "mae"
+        ):
+            self.config.target_score = -self.config.target_score
+            sign_for_score = -1
+
         train_val_scorings = [
             self.evaluate_model(
                 model,
@@ -80,24 +89,45 @@ class ManyModelsTypeModelTrainer:
             )
             for model in self.models
         ]
-        train_scorings = [item[0] for item in train_val_scorings]
-        val_scorings = [item[1] for item in train_val_scorings]
+        self.train_scorings = [item[0] * sign_for_score for item in train_val_scorings]
+        self.val_scorings = [item[1] * sign_for_score for item in train_val_scorings]
+
+    def find_best_model_and_scoring(self):
+        """TÌm model tốt nhất và scoring tương ứng
+
+        Examples:
+            Với **monitor = val_accuracy và indicator = 0.99**
+
+            Tìm model thỏa val_accuracy > 0.99 và train_accuracy > 0.99 (1) và val_accuracy là lớn nhất trong số đó
+
+            Nếu không thỏa (1) thì lấy theo val_accuracy lớn nhất
+        """
+
+        # Tìm index của best model
+        indexs_good_model = np.where(
+            (self.val_scorings > self.config.target_score)
+            & (self.train_scorings > self.config.target_score)
+        )[0]
 
         index_best_model = None
-        if self.config.scoring == "accuracy":
-            index_best_model = np.argmax(val_scorings)
-        elif self.config.scoring == "log_loss":
-            index_best_model = np.argmin(val_scorings)
+        if (
+            len(indexs_good_model) == 0
+        ):  # Nếu ko có model nào đạt chỉ tiêu thì lấy cái tốt nhất
+            index_best_model = np.argmax(self.val_scorings)
         else:
-            raise ValueError(
-                "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
+            val_series = pd.Series(
+                self.val_scorings[indexs_good_model], index=indexs_good_model
             )
+            index_best_model = val_series.idxmax()
 
         self.best_model = self.models[index_best_model]
-        self.train_scoring = train_scorings[index_best_model]
-        self.val_scoring = val_scorings[index_best_model]
+        self.train_scoring = self.train_scorings[index_best_model]
+        self.val_scoring = self.val_scorings[index_best_model]
 
     def save_best_model_results(self):
+        # Tìm scorings của các models
+        self.find_train_val_scorings_for_models()
+
         # Tìm model tốt nhất và chỉ số scoring
         self.find_best_model_and_scoring()
 

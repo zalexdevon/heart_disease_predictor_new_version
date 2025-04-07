@@ -100,6 +100,7 @@ class ConfigurationManager:
             models=params.models,
             # common params
             scoring=self.params.scoring,
+            target_score=self.params.target_score,
         )
 
         return model_trainer_config

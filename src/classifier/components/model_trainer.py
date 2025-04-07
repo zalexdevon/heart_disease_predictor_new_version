@@ -55,6 +55,10 @@ class ModelTrainer:
         # Load params thực hiện fine tune model
         self.param_grid = myfuncs.get_param_grid_model(self.config.param_grid)
 
+        # Load scoring để sử dụng vào RandomizedSearchCV, GridSearchCV (vd: log_loss -> neg_log_loss)
+        if self.config.scoring == "log_loss":
+            self.scoring = "neg_" + self.config.scoring
+
         # Load searcher
         if self.config.model_training_type == "r":
             self.searcher = RandomizedSearchCV(
@@ -63,7 +67,7 @@ class ModelTrainer:
                 n_iter=self.config.n_iter,
                 cv=self.trainval_splitter,
                 random_state=42,
-                scoring=self.config.scoring,
+                scoring=self.scoring,
                 return_train_score=True,
                 verbose=2,
             )
@@ -72,7 +76,7 @@ class ModelTrainer:
                 self.base_model,
                 param_grid=self.param_grid,
                 cv=self.trainval_splitter,
-                scoring=self.config.scoring,
+                scoring=self.scoring,
                 return_train_score=True,
                 verbose=2,
             )
@@ -83,7 +87,7 @@ class ModelTrainer:
                 n_iter=self.config.n_iter,
                 cv=5,
                 random_state=42,
-                scoring=self.config.scoring,
+                scoring=self.scoring,
                 return_train_score=True,
                 verbose=2,
             )
@@ -92,7 +96,7 @@ class ModelTrainer:
                 self.base_model,
                 param_grid=self.param_grid,
                 cv=5,
-                scoring=self.config.scoring,
+                scoring=self.scoring,
                 return_train_score=True,
                 verbose=2,
             )
