@@ -2,7 +2,7 @@ stages:
       data_correction: 
             cmd: python src/classifier/pipeline/stage_02_data_correction.py
             params: 
-                  - data_correction
+                  - data_correction.val_size
             outs: 
                   - artifacts/data_correction
 
@@ -11,7 +11,7 @@ stages:
             deps: 
                   - artifacts/data_correction
             params:
-                  - data_transformation
+                  - data_transformation.number
             outs:
                   - artifacts/data_transformation
 
