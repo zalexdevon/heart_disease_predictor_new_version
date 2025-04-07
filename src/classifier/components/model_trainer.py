@@ -142,9 +142,11 @@ class ModelTrainer:
         self.find_model_scoring()
         self.best_model_results_text += f"====CHỈ SỐ SCORING====\n"
         self.best_model_results_text += (
-            f"Train {self.config.scoring}: {self.train_scoring}"
+            f"Train {self.config.scoring}: {self.train_scoring}\n"
         )
-        self.best_model_results_text += f"Val {self.config.scoring}: {self.val_scoring}"
+        self.best_model_results_text += (
+            f"Val {self.config.scoring}: {self.val_scoring}\n"
+        )
 
         # Các chỉ số khác bao gồm accuracy + classfication report
         self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
