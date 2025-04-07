@@ -99,6 +99,7 @@ class ModelEvaluationConfig:
     # common params
     target_col: str
     scoring: str
+    predictor_type: str
 
 
 @dataclass(frozen=True)

@@ -54,10 +54,14 @@ class ManyModelsTypeModelTrainer:
         self.val_scorings = []
         for index, model in enumerate(self.models):
             model.fit(self.val_feature_data, self.train_target_data)
-            train_scoring, val_scoring = self.evaluate_model(
+            train_scoring = myfuncs.evaluate_model_on_one_scoring_17(
                 model,
                 self.train_feature_data,
                 self.train_target_data,
+                self.config.scoring,
+            )
+            val_scoring = myfuncs.evaluate_model_on_one_scoring_17(
+                model,
                 self.val_feature_data,
                 self.val_target_data,
                 self.config.scoring,
@@ -65,7 +69,7 @@ class ManyModelsTypeModelTrainer:
 
             # In kết quả
             print(
-                f"Model no. {index} -> Train score: {train_scoring}, Val score: {val_scoring}"
+                f"Model no. {index} -> Train {self.config.scoring}: {train_scoring}, Val {self.config.scoring}: {val_scoring}\n"
             )
 
             self.train_scorings.append(train_scoring)
@@ -75,33 +79,9 @@ class ManyModelsTypeModelTrainer:
             f"\n========KET THUC TRAIN {self.num_models} MODELS !!!!!!================\n"
         )
 
-    def evaluate_model(
-        self, model, train_feature, train_target, val_feature, val_target, scoring
-    ):
-        if scoring == "accuracy":
-            train_prediction = model.predict(train_feature)
-            val_prediction = model.predict(val_feature)
-            return metrics.accuracy_score(
-                train_target, train_prediction
-            ), metrics.accuracy_score(val_target, val_prediction)
-        elif scoring == "log_loss":
-            train_prediction = model.predict_proba(train_feature)
-            val_prediction = model.predict_proba(val_feature)
-            return metrics.log_loss(train_target, train_prediction), metrics.log_loss(
-                val_target, val_prediction
-            )
-        else:
-            raise ValueError(
-                "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
-            )
-
-    def find_train_val_scorings_for_models(self):
-        sign_for_score = 1  # Nếu scoring là loss thì lấy âm -> quy về tìm lớn nhất thôi
-        if (
-            self.config.scoring == "log_loss"
-            or self.config.scoring == "mse"
-            or self.config.scoring == "mae"
-        ):
+    def find_train_val_scorings_to_find_the_best(self):
+        sign_for_score = 1  # Nếu scoring cần min thì lấy âm -> quy về tìm lớn nhất thôi
+        if self.config.scoring in ["log_loss", "mse", "mae"]:
             self.config.target_score = -self.config.target_score
             sign_for_score = -1
 
@@ -146,10 +126,8 @@ class ManyModelsTypeModelTrainer:
         self.val_scoring = self.val_scorings[index_best_model]
 
     def save_best_model_results(self):
-        # Tìm scorings của các models
-        self.find_train_val_scorings_for_models()
-
         # Tìm model tốt nhất và chỉ số scoring
+        self.find_train_val_scorings_to_find_the_best()
         self.find_best_model_and_scoring()
 
         # Các chỉ số đánh giá của model
@@ -165,28 +143,19 @@ class ManyModelsTypeModelTrainer:
         self.best_model_results_text += f"Val {self.config.scoring}: {self.val_scoring}"
 
         # Các chỉ số khác bao gồm accuracy + classfication report
-        train_prediction = self.best_model.predict(self.train_feature_data)
-        val_prediction = self.best_model.predict(self.val_feature_data)
-        train_accuracy = metrics.accuracy_score(
-            self.train_target_data, train_prediction
-        )
-        val_accuracy = metrics.accuracy_score(self.val_target_data, val_prediction)
+        self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
 
-        train_classification_report = metrics.classification_report(
-            self.train_target_data, train_prediction
+        evaluate_func = (
+            myfuncs.evaluate_classifier_15
+            if self.config.predictor_type == "c"
+            else myfuncs.evaluate_regressor_16
         )
-        val_classification_report = metrics.classification_report(
-            self.val_target_data, val_prediction
-        )
-
-        self.best_model_results_text += "\n====CHỈ SỐ ĐÁNH GIÁ KHÁC====\n"
-        self.best_model_results_text += f"Train accuracy: {train_accuracy}"
-        self.best_model_results_text += f"Val accuracy: {val_accuracy}\n"
-        self.best_model_results_text += (
-            f"Train classification_report: \n{train_classification_report}\n"
-        )
-        self.best_model_results_text += (
-            f"Val classification_report: \n{val_classification_report}"
+        self.best_model_results_text += evaluate_func(
+            self.best_model,
+            self.train_feature_data,
+            self.train_target_data,
+            self.val_feature_data,
+            self.val_target_data,
         )
 
         # In ra kết quả đánh giá

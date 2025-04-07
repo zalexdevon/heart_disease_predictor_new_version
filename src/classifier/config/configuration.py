@@ -140,6 +140,7 @@ class ConfigurationManager:
             # common params
             target_col=self.params.target_col,
             scoring=self.params.scoring,
+            predictor_type=self.params.predictor_type,
         )
 
         return obj

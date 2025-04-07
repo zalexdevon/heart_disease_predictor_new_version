@@ -1397,7 +1397,12 @@ def get_different_types_cols_from_df_14(df: pd.DataFrame):
 
 
 def evaluate_classifier_15(
-    model, train_feature_data, train_target_data, val_feature_data, val_target_data
+    model,
+    train_feature_data,
+    train_target_data,
+    val_feature_data,
+    val_target_data,
+    class_names,
 ):
     """Đánh giá chung cho 1 classifier
 
@@ -1412,16 +1417,18 @@ def evaluate_classifier_15(
         Val classification_report:
 
     """
-    train_prediction = model.predict(train_feature_data)
-    val_prediction = model.predict(val_feature_data)
-    train_accuracy = metrics.accuracy_score(train_target_data, train_prediction)
-    val_accuracy = metrics.accuracy_score(val_target_data, val_prediction)
-
-    train_classification_report = metrics.classification_report(
-        train_target_data, train_prediction
+    train_accuracy = evaluate_model_on_one_scoring_17(
+        model, train_feature_data, train_target_data, "accuracy"
     )
-    val_classification_report = metrics.classification_report(
-        val_target_data, val_prediction
+    val_accuracy = evaluate_model_on_one_scoring_17(
+        model, val_feature_data, val_target_data, "accuracy"
+    )
+
+    train_classification_report = get_classification_report_18(
+        model, train_feature_data, train_target_data, class_names
+    )
+    val_classification_report = get_classification_report_18(
+        model, val_feature_data, val_target_data, class_names
     )
 
     model_results_text = f"Train accuracy: {train_accuracy}"
@@ -1465,5 +1472,79 @@ def evaluate_regressor_16(
     model_results_text += f"Val RMSE: {val_rmse}\n"
     model_results_text = f"Train MAE: {train_mae}"
     model_results_text += f"Val MAE: {val_mae}\n"
+
+    return model_results_text
+
+
+def evaluate_model_on_one_scoring_17(model, feature, target, scoring):
+    if scoring == "accuracy":
+        prediction = model.predict(feature)
+        return metrics.accuracy_score(target, prediction)
+    elif scoring == "log_loss":
+        prediction = model.predict_proba(feature)
+        return metrics.log_loss(target, prediction)
+    elif scoring == "mse":
+        prediction = model.predict(feature)
+        return np.sqrt(metrics.mean_squared_error(target, prediction))
+    elif scoring == "mae":
+        prediction = model.predict(feature)
+        return metrics.mean_absolute_error(target, prediction)
+    else:
+        raise ValueError(
+            "===== Chỉ mới định nghĩa cho accuracy, log_loss, mse, mae =============="
+        )
+
+
+def get_classification_report_18(model, feature, target, class_names):
+    """Tạo classfication report cho classifier"""
+    class_names = np.asarray(class_names)
+    target = class_names[target]
+    prediction = model.predict(feature)
+    prediction = class_names[prediction]
+    return metrics.classification_report(target, prediction)
+
+
+def evaluate_classifier_on_test_data_18(model, feature_data, target_data, class_names):
+    """Đánh giá chung cho 1 classifier
+
+    Định dạng của kết quả:
+
+        Accuracy:
+
+        Classification_report:
+
+    """
+    train_accuracy = evaluate_model_on_one_scoring_17(
+        model, feature_data, target_data, "accuracy"
+    )
+
+    train_classification_report = get_classification_report_18(
+        model, feature_data, target_data, class_names
+    )
+
+    model_results_text = f"Accuracy: {train_accuracy}"
+    model_results_text += f"Classification_report: \n{train_classification_report}\n"
+
+    return model_results_text
+
+
+def evaluate_regressor_on_test_data_18(model, feature_data, target_data):
+    """Đánh giá chung cho 1 classifier
+
+    Định dạng của kết quả:
+        Accuracy:
+
+        Classification_report:
+
+    """
+    train_rmse = evaluate_model_on_one_scoring_17(
+        model, feature_data, target_data, "mse"
+    )
+    train_mae = evaluate_model_on_one_scoring_17(
+        model, feature_data, target_data, "mae"
+    )
+
+    model_results_text = f"RMSE: {train_rmse}"
+    model_results_text = f"MAE: {train_mae}"
 
     return model_results_text
