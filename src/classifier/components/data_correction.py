@@ -329,7 +329,7 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         df = X
 
-        numeric_cols, numericCat_cols, cat_cols, binary_cols, _, _, _, _ = (
+        numeric_cols, numericCat_cols, cat_cols, binary_cols, _, _, _ = (
             myfuncs.get_different_types_cols_from_df_4(df)
         )
 

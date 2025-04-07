@@ -4,7 +4,7 @@ scoring: accuracy
 
 # DATA CORRECTION
 data_correction: 
-      val_size: 0.2001
+      val_size: 0.20001
 
 # DATA TRANSFORMATION
 data_transformation: 
