@@ -799,6 +799,10 @@ class ColumnsDeleter(BaseEstimator, TransformerMixin):
 
         X = X.drop(columns=self.columns)
 
+        # TODO: d
+        print("===========Xóa cột thành công ================")
+        # d
+
         self.cols = X.columns.tolist()
         return X
 
