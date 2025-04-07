@@ -792,16 +792,8 @@ class ColumnsDeleter(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        # TODO: d
-        print("========các cột khi vào ColumnsDeleter==============\n")
-        print(X.columns.tolist())
-        # d
 
         X = X.drop(columns=self.columns)
-
-        # TODO: d
-        print("===========Xóa cột thành công ================")
-        # d
 
         self.cols = X.columns.tolist()
         return X

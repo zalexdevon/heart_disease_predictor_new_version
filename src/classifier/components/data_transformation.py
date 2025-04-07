@@ -44,6 +44,64 @@ class CustomOrdinalEncoder(BaseEstimator, TransformerMixin):
         return self.cols
 
 
+class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def fit(self, X, y=None):
+        # Lấy các cột numeric, nominal, ordinal
+        (
+            numeric_cols,
+            numericcat_cols,
+            cat_cols,
+            binary_cols,
+            nominal_cols,
+            ordinal_cols,
+            target_col,
+        ) = myfuncs.get_different_types_cols_from_df_4(X)
+
+        numeric_cols = numeric_cols + numericcat_cols
+        ordinal_cols = ordinal_cols + binary_cols
+
+        nominal_cols_pipeline = Pipeline(
+            steps=[
+                ("1", OneHotEncoder(sparse_output=False, drop="first")),
+                ("2", StandardScaler()),
+            ]
+        )
+
+        ordinal_pipeline = Pipeline(
+            steps=[
+                ("1", CustomOrdinalEncoder()),
+                ("2", StandardScaler()),
+            ]
+        )
+
+        self.column_transformer = ColumnTransformer(
+            transformers=[
+                ("1", StandardScaler(), numeric_cols),
+                ("2", nominal_cols_pipeline, nominal_cols),
+                ("3", ordinal_pipeline, ordinal_cols),
+            ],
+        )
+
+        self.column_transformer.fit(X)
+
+    def transform(self, X, y=None):
+        X = self.column_transformer.transform(X)
+
+        return pd.DataFrame(
+            X,
+            columns=myfuncs.get_real_column_name_from_get_feature_names_out(
+                self.column_transformer.get_feature_names_out()
+            ),
+        )
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
+
+
 class NamedColumnTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, column_transformer) -> None:
         super().__init__()
@@ -80,34 +138,16 @@ class DataTransformation:
         )
         self.classes = np.asarray(self.df_train[self.config.target_col].cat.categories)
 
-        # TODO: d
-        print(f"========feature cols===========\n {self.feature_cols}")
-        # d
-
         # Load các transfomers
         self.list_before_feature_transformer = [
             myfuncs.convert_string_to_object_4(transformer)
             for transformer in self.config.list_before_feature_transformer
         ]
+
         self.list_after_feature_transformer = [
             myfuncs.convert_string_to_object_4(transformer)
             for transformer in self.config.list_after_feature_transformer
         ]
-
-        # Lấy các cột numeric, nominal, ordinal
-        (
-            numeric_cols,
-            numericcat_cols,
-            cat_cols,
-            binary_cols,
-            nominal_cols,
-            ordinal_cols,
-            target_col,
-        ) = myfuncs.get_different_types_cols_from_df_4(self.df_train)
-
-        self.numeric_cols = numeric_cols + numericcat_cols
-        self.nominal_cols = nominal_cols
-        self.ordinal_cols = ordinal_cols + binary_cols
 
     def create_preprocessor_for_train_data(self):
         before_feature_pipeline = Pipeline(
@@ -117,28 +157,6 @@ class DataTransformation:
                     self.list_before_feature_transformer
                 )
             ]
-        )
-
-        nominal_cols_pipeline = Pipeline(
-            steps=[
-                ("1", OneHotEncoder(sparse_output=False, drop="first")),
-                ("2", StandardScaler()),
-            ]
-        )
-
-        ordinal_pipeline = Pipeline(
-            steps=[
-                ("1", CustomOrdinalEncoder()),
-                ("2", StandardScaler()),
-            ]
-        )
-
-        during_feature_transformer = ColumnTransformer(
-            transformers=[
-                ("1", StandardScaler(), self.numeric_cols),
-                ("2", nominal_cols_pipeline, self.nominal_cols),
-                ("3", ordinal_pipeline, self.ordinal_cols),
-            ],
         )
 
         after_feature_pipeline = Pipeline(
@@ -151,7 +169,7 @@ class DataTransformation:
         feature_pipeline = Pipeline(
             steps=[
                 ("pre", before_feature_pipeline),
-                ("during", during_feature_transformer),
+                ("during", DuringFeatureTransformer()),
                 ("after", after_feature_pipeline),
             ]
         )

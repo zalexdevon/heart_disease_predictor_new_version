@@ -7,10 +7,6 @@ import yaml
 
 params = read_yaml(PARAMS_FILE_PATH)
 
-# TODO: d
-print("params.yaml:\n")
-print(params)
-# d
 
 P = params.data_transformation.number
 T = params.model_trainer.model_name
@@ -27,12 +23,6 @@ replace_dict = {
 sub_param_for_yaml_file("config_p.yaml", "config.yaml", replace_dict)
 sub_param_for_yaml_file("dvc_p.yaml", "dvc.yaml", replace_dict)
 
-# TODO: d
-print("dvc.yaml:\n")
-with open("dvc.yaml", "r", encoding="utf-8") as yaml_file:
-    content = yaml.safe_load(yaml_file)
-    print(content)
-# d
 
 stage_name = sys.argv[1]
 os.system(f"dvc repro {stage_name}")
