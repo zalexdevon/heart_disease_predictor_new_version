@@ -5,7 +5,7 @@ import sys
 import os
 import yaml
 
-params = read_yaml(Path(PARAMS_FILE_PATH))
+params = read_yaml(PARAMS_FILE_PATH)
 
 P = params.data_transformation.no
 T = params.model_trainer.model_name
