@@ -38,7 +38,7 @@ model_trainer:
 
 # MODEL EVALUATION
 model_evaluation: 
-      data_transformation_no: 1
+      data_transformation_no: "1"
       model_name: XGB_12
 
 # MONITOR PLOT
