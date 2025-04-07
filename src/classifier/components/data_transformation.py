@@ -94,16 +94,20 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         X = self.column_transformer.transform(X)
 
-        return pd.DataFrame(
-            X,
-            columns=myfuncs.get_real_column_name_from_get_feature_names_out(
+        self.cols = (
+            myfuncs.get_real_column_name_from_get_feature_names_out(
                 self.column_transformer.get_feature_names_out()
             ),
         )
 
+        return pd.DataFrame(X, columns=self.cols)
+
     def fit_transform(self, X, y=None):
         self.fit(X)
         return self.transform(X)
+
+    def get_feature_names_out(self, input_features=None):
+        return self.cols
 
 
 class NamedColumnTransformer(BaseEstimator, TransformerMixin):
