@@ -70,6 +70,18 @@ class ModelTrainerConfig:
     scoring: str
 
 
+# TEST DATA CORRECTION
+@dataclass(frozen=True)
+class TestDataCorrectionConfig:
+    # input
+    test_raw_data_path: Path
+    preprocessor_path: Path
+
+    # output
+    root_dir: Path
+    test_data_path: Path
+
+
 # MODEL_EVALUATION
 @dataclass(frozen=True)
 class ModelEvaluationConfig:

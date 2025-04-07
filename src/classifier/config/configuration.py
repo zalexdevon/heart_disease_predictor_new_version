@@ -6,6 +6,7 @@ from classifier.entity.config_entity import (
     ModelTrainerConfig,
     ModelEvaluationConfig,
     MonitorPlotterConfig,
+    TestDataCorrectionConfig,
 )
 from pathlib import Path
 from classifier.Mylib import myfuncs
@@ -102,6 +103,23 @@ class ConfigurationManager:
         )
 
         return model_trainer_config
+
+    # TEST DATA CORRECTION
+    def get_test_data_correction_config(self) -> TestDataCorrectionConfig:
+        config = self.config.test_data_correction
+
+        create_directories([config.root_dir])
+
+        obj = TestDataCorrectionConfig(
+            # input
+            test_raw_data_path=config.test_raw_data_path,
+            preprocessor_path=config.preprocessor_path,
+            # output
+            root_dir=config.root_dir,
+            test_data_path=config.test_data_path,
+        )
+
+        return obj
 
     # MODEL_EVALUATION
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:

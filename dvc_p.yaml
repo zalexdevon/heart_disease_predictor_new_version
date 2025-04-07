@@ -22,8 +22,14 @@ stages:
             params:
                   - model_name
 
+      test_data_correction: 
+            cmd: python src/classifier/pipeline/stage_test_data_correction.py
+            outs: 
+                  - artifacts/test_data_correction
+
       model_evaluation:
             cmd: python src/classifier/pipeline/stage_05_model_evaluation.py
+            deps: 
+                  - artifacts/test_data_correction
             params:
-                  - evaluated_data_transformation
-                  - evaluated_model_name
+                  - model_evaluation

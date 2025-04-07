@@ -41,12 +41,20 @@ model_trainer:
       list_monitor_components_path: artifacts/model_trainer/list_monitor_components.pkl
 
 # TEST DATA CORRECTION 
+test_data_correction: 
+      # input 
+      test_raw_data_path: artifacts/data_ingestion/test_data.pkl
+      preprocessor_path: artifacts/data_correction/preprocessor.pkl
+
+      # output
+      root_dir: artifacts/test_data_correction
+      test_data_path: artifacts/test_data_correction/test_data.pkl
 
 
 # MODEL_EVALUATION
 model_evaluation:
       # input
-      test_data_path: artifacts/data_correction/test_data.pkl
+      test_data_path: artifacts/test_data_correction/test_data.pkl
       preprocessor_path: artifacts/data_transformation/${PE}/preprocessor.pkl
       model_path: artifacts/model_trainer/${E}/best_model.pkl
 

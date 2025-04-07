@@ -172,7 +172,6 @@ cython_debug/
 .pypirc
 
 # Other 
-Data/
+data/
 artifacts/
-src/research_advanced_colab/
-src/research.ipynb
+research/
