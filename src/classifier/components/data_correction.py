@@ -329,16 +329,14 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         df = X
 
-        numeric_cols, numericCat_cols, cat_cols, binary_cols, _, _, _ = (
+        numeric_cols, numericCat_cols, cat_cols, binary_cols, _, _, target_col = (
             myfuncs.get_different_types_cols_from_df_4(df)
         )
 
         # Chuyen doi ve dung kieu du lieu
         df[numeric_cols] = df[numeric_cols].astype("float")
         df[numericCat_cols] = df[numericCat_cols].astype("float")
-        df[cat_cols + [self.target_col]] = df[cat_cols + [self.target_col]].astype(
-            "category"
-        )
+        df[cat_cols + [target_col]] = df[cat_cols + [target_col]].astype("category")
 
         # Thay doi thu tu cac label cho cac cot ordinal, binary va target
         bin_values_dict = dict(zip(binary_cols, [["No", "Yes"]] * len(binary_cols)))
