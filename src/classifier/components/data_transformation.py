@@ -100,6 +100,11 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
             ),
         )
 
+        # TODO: d
+        print("===========Các cột trong DuringFeatureTransformer============\n")
+        print(self.cols)
+        # d
+
         return pd.DataFrame(X, columns=self.cols)
 
     def fit_transform(self, X, y=None):
