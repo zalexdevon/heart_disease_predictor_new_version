@@ -56,6 +56,7 @@ class ModelTrainer:
         self.param_grid = myfuncs.get_param_grid_model(self.config.param_grid)
 
         # Load scoring để sử dụng vào RandomizedSearchCV, GridSearchCV (vd: log_loss -> neg_log_loss)
+        self.scoring = self.config.scoring
         if self.config.scoring == "log_loss":
             self.scoring = "neg_" + self.config.scoring
 
