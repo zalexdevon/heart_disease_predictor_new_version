@@ -24,7 +24,7 @@ from sklearn.base import clone
 import time
 
 
-class ModelTrainer:
+class ManyModelsTypeModelTrainer:
     def __init__(self, config: ModelTrainerConfig):
         self.config = config
 
@@ -39,95 +39,74 @@ class ModelTrainer:
         self.val_feature_data = myfuncs.load_python_object(self.config.val_feature_path)
         self.val_target_data = myfuncs.load_python_object(self.config.val_target_path)
 
-        # Gộp train, val vào đúng 1 df
-        self.features, self.target, self.trainval_splitter = (
-            myfuncs.get_features_target_spliter_for_CV_train_val(
+        # Load models
+        self.models = [
+            myfuncs.convert_string_to_object_4(model) for model in self.config.models
+        ]
+
+    def train_model(self):
+        for model in self.models:
+            model.fit(self.train_feature_data, self.train_target_data)
+
+    def evaluate_model(
+        self, model, train_feature, train_target, val_feature, val_target, scoring
+    ):
+        if scoring == "accuracy":
+            train_prediction = model.predict(train_feature)
+            val_prediction = model.predict(val_feature)
+            return metrics.accuracy_score(
+                train_target, train_prediction
+            ), metrics.accuracy_score(val_target, val_prediction)
+        elif scoring == "log_loss":
+            train_prediction = model.predict_proba(train_feature)
+            val_prediction = model.predict_proba(val_feature)
+            return metrics.log_loss(train_target, train_prediction), metrics.log_loss(
+                val_target, val_prediction
+            )
+        else:
+            raise ValueError(
+                "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
+            )
+
+    def find_best_model_and_scoring(self):
+        train_val_scorings = [
+            self.evaluate_model(
+                model,
                 self.train_feature_data,
                 self.train_target_data,
                 self.val_feature_data,
                 self.val_target_data,
+                self.config.scoring,
             )
-        )
+            for model in self.models
+        ]
+        train_scorings = [item[0] for item in train_val_scorings]
+        val_scorings = [item[1] for item in train_val_scorings]
 
-        # Load base model (chưa có tham số)
-        self.base_model = myfuncs.convert_string_to_object_4(self.config.base_model)
-
-        # Load params thực hiện fine tune model
-        self.param_grid = myfuncs.get_param_grid_model(self.config.param_grid)
-
-        # Load searcher
-        if self.config.model_training_type == "r":
-            self.searcher = RandomizedSearchCV(
-                self.base_model,
-                param_distributions=self.param_grid,
-                n_iter=self.config.n_iter,
-                cv=self.trainval_splitter,
-                random_state=42,
-                scoring=self.config.scoring,
-                return_train_score=True,
-                verbose=2,
-            )
-        elif self.config.model_training_type == "g":
-            self.searcher = GridSearchCV(
-                self.base_model,
-                param_grid=self.param_grid,
-                cv=self.trainval_splitter,
-                scoring=self.config.scoring,
-                return_train_score=True,
-                verbose=2,
-            )
-        elif self.config.model_training_type == "rcv":
-            self.searcher = RandomizedSearchCV(
-                self.base_model,
-                param_distributions=self.param_grid,
-                n_iter=self.config.n_iter,
-                cv=5,
-                random_state=42,
-                scoring=self.config.scoring,
-                return_train_score=True,
-                verbose=2,
-            )
-        elif self.config.model_training_type == "gcv":
-            self.searcher = GridSearchCV(
-                self.base_model,
-                param_grid=self.param_grid,
-                cv=5,
-                scoring=self.config.scoring,
-                return_train_score=True,
-                verbose=2,
-            )
+        index_best_model = None
+        if self.config.scoring == "accuracy":
+            index_best_model = np.argmax(val_scorings)
+        elif self.config.scoring == "log_loss":
+            index_best_model = np.argmin(val_scorings)
         else:
             raise ValueError(
-                "===== Giá trị model_training_type không hợp lệ =============="
+                "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
             )
 
-    def train_model(self):
-        self.searcher.fit(self.features, self.target)
-
-    def find_model_scoring(self):
-        cv_results = zip(
-            self.cv_results["mean_test_score"], self.cv_results["mean_train_score"]
-        )
-        cv_results = sorted(cv_results, key=lambda x: x[0], reverse=True)
-        self.val_scoring, self.train_scoring = cv_results[0]
-
-        if self.config.scoring == "log_loss":
-            self.val_scoring, self.train_scoring = (
-                -self.val_scoring,
-                -self.train_scoring,
-            )
+        self.best_model = self.models[index_best_model]
+        self.train_scoring = train_scorings[index_best_model]
+        self.val_scoring = val_scorings[index_best_model]
 
     def save_best_model_results(self):
-        self.best_model = self.searcher.best_estimator_
-        self.cv_results = self.searcher.cv_results_
+        # Tìm model tốt nhất và chỉ số scoring
+        self.find_best_model_and_scoring()
 
         # Các chỉ số đánh giá của model
         self.best_model_results_text = (
-            "========KET QUA CUA MO HINH TOT NHAT================\n"
+            "========KẾT QUẢ MODEL TỐT NHẤT================\n"
         )
 
         ## Chỉ số scoring
-        self.find_model_scoring()
         self.best_model_results_text += f"====CHỈ SỐ SCORING====\n"
         self.best_model_results_text += (
             f"Train {self.config.scoring}: {self.train_scoring}"

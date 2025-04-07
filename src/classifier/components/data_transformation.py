@@ -32,14 +32,6 @@ class PreFeatureColumnTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None) -> pd.DataFrame:
-        X = X.drop(
-            columns=[
-                "State_nom",
-                "RemovedTeeth_nom",
-                "AgeCategory_nom",
-                "DifficultyDressingBathing_bin",
-            ]
-        )
 
         self.cols = X.columns.tolist()
         return X
@@ -54,7 +46,9 @@ class PreFeatureColumnTransformer(BaseEstimator, TransformerMixin):
 
 ### AFTER
 class AfterFeatureColumnTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
         super().__init__()
 
     def fit(self, X, y=None):
@@ -107,7 +101,7 @@ class CustomOrdinalEncoder(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         for col in X.columns:
-            X[col] = X[col].cat.codes
+            X[col] = X[col].cat.codes + 1  # nhỏ nhất = 1 (0 thì xét làm gì nữa)
 
         self.cols = X.columns.tolist()
         return X
@@ -137,14 +131,14 @@ class DuringFeatureColumnTransformer(BaseEstimator, TransformerMixin):
         nominal_cols_pipeline = Pipeline(
             steps=[
                 ("1", OneHotEncoder(sparse_output=False, drop="first")),
-                # ("2", StandardScaler()),
+                ("2", StandardScaler()),
             ]
         )
 
         ordinal_pipeline = Pipeline(
             steps=[
                 ("1", CustomOrdinalEncoder()),
-                # ("2", StandardScaler()),
+                ("2", StandardScaler()),
             ]
         )
 
@@ -177,35 +171,11 @@ class DuringFeatureColumnTransformer(BaseEstimator, TransformerMixin):
 
 
 class NamedColumnTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, feature_cols, target_col) -> None:
+    def __init__(self, column_transformer) -> None:
         super().__init__()
-        self.feature_cols = feature_cols
-        self.target_col = target_col
+        self.column_transformer = column_transformer
 
     def fit(self, X, y=None):
-
-        feature_transformer = Pipeline(
-            steps=[
-                ("pre", PreFeatureColumnTransformer()),
-                ("durig", DuringFeatureColumnTransformer()),
-                ("after", AfterFeatureColumnTransformer()),
-            ]
-        )
-
-        target_transformer = Pipeline(
-            steps=[
-                ("pre", PreTargetColumnTransformer()),
-                ("during", CustomOrdinalEncoder()),
-            ]
-        )
-
-        self.column_transformer = ColumnTransformer(
-            transformers=[
-                ("feature", feature_transformer, self.feature_cols),
-                ("target", target_transformer, [self.target_col]),
-            ]
-        )
-
         self.column_transformer.fit(X)
 
     def transform(self, X, y=None):
@@ -230,30 +200,101 @@ class DataTransformation:
     def load_data(self):
         self.df_train = myfuncs.load_python_object(self.config.train_data_path)
         self.df_val = myfuncs.load_python_object(self.config.val_data_path)
-
         self.num_train_sample = len(self.df_train)
-
-        self.feature_cols = list(
-            set(self.df_train.columns) - set([self.config.target_col])
+        self.feature_cols = myfuncs.do_list_subtraction_3(
+            self.df_train.columns.tolist(), [self.config.target_col]
         )
+        self.classes = np.asarray(self.df_train[self.config.target_col].cat.categories)
 
-        self.classes = self.df_train[self.config.target_col].cat.categories
+        # Load các transfomers
+        self.list_before_feature_transformer = [
+            myfuncs.convert_string_to_object_4(transformer)
+            for transformer in self.config.list_before_feature_transformer
+        ]
+        self.list_after_feature_transformer = [
+            myfuncs.convert_string_to_object_4(transformer)
+            for transformer in self.config.list_after_feature_transformer
+        ]
+
+        # Lấy các cột numeric, nominal, ordinal
+        cols = pd.Series(self.df_train.columns)
+        self.numeric_cols = cols[
+            cols.str.endswith("num") | cols.str.endswith("numcat")
+        ].tolist()
+        self.nominal_cols = cols[cols.str.endswith("nom")].tolist()
+        self.ordinal_cols = cols[
+            cols.str.endswith("ord") | cols.str.endswith("bin")
+        ].tolist()
 
     def create_preprocessor_for_train_data(self):
-        self.preprocessor = NamedColumnTransformer(
-            self.feature_cols, self.config.target_col
+        before_feature_pipeline = Pipeline(
+            steps=[
+                (str(index), transformer)
+                for index, transformer in enumerate(
+                    self.list_before_feature_transformer
+                )
+            ]
         )
 
+        nominal_cols_pipeline = Pipeline(
+            steps=[
+                ("1", OneHotEncoder(sparse_output=False, drop="first")),
+                ("2", StandardScaler()),
+            ]
+        )
+
+        ordinal_pipeline = Pipeline(
+            steps=[
+                ("1", CustomOrdinalEncoder()),
+                ("2", StandardScaler()),
+            ]
+        )
+
+        during_feature_transformer = ColumnTransformer(
+            transformers=[
+                ("1", StandardScaler(), self.numeric_cols),
+                ("2", nominal_cols_pipeline, self.nominal_cols),
+                ("3", ordinal_pipeline, self.ordinal_cols),
+            ],
+        )
+
+        after_feature_pipeline = Pipeline(
+            steps=[
+                (str(index), transformer)
+                for index, transformer in enumerate(self.list_after_feature_transformer)
+            ]
+        )
+
+        feature_pipeline = Pipeline(
+            steps=[
+                ("pre", before_feature_pipeline),
+                ("during", during_feature_transformer),
+                ("after", after_feature_pipeline),
+            ]
+        )
+
+        target_pipeline = Pipeline(
+            steps=[
+                ("during", CustomOrdinalEncoder()),
+            ]
+        )
+
+        column_transformer = ColumnTransformer(
+            transformers=[
+                ("feature", feature_pipeline, self.feature_cols),
+                ("target", target_pipeline, [self.config.target_col]),
+            ]
+        )
+
+        self.preprocessor = NamedColumnTransformer(column_transformer)
+
     def transform_data(self):
-        df = pd.concat([self.df_train, self.df_val], axis=0)
-
-        df_transformed = self.preprocessor.fit_transform(df)
-
-        df_train_transformed = df_transformed.iloc[: self.num_train_sample, :]
-        df_val_transformed = df_transformed.iloc[self.num_train_sample :, :]
+        df_train_transformed = self.preprocessor.fit_transform(self.df_train)
+        df_val_transformed = self.preprocessor.transform(self.df_val)
 
         df_train_feature = df_train_transformed.drop(columns=[self.config.target_col])
         df_train_target = df_train_transformed[self.config.target_col]
+
         if self.config.do_smote == "t":
             smote = SMOTE(sampling_strategy="auto", random_state=42)
             df_train_feature, df_train_target = smote.fit_resample(

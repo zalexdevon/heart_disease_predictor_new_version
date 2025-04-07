@@ -12,10 +12,10 @@ class MonitorPlotter:
         self.config = config
 
     def plot(self, monitor):
-
-        monitor_descs = [item[0] for item in monitor]
+        model_names = [item[0] for item in monitor]
         train_scores = [item[1] for item in monitor]
         val_scores = [item[2] for item in monitor]
+        results = [item[3] for item in monitor]
 
         for i in range(len(train_scores)):
             if train_scores[i] > self.config.max_val_value:
@@ -26,9 +26,9 @@ class MonitorPlotter:
 
         x_values = list(range(1, len(train_scores) + 1))
 
-        df = pd.DataFrame({"x": x_values, "train": train_scores, "val": val_scores})
+        df = pd.DataFrame({"x": x_values, "train": train_scores, "val": val_scores, "results": results,})
         df_long = df.melt(
-            id_vars=["x"],
+            id_vars=["x", "results"],
             value_vars=["train", "val"],
             var_name="Category",
             value_name="y",
@@ -44,11 +44,12 @@ class MonitorPlotter:
                 "train": "gray",
                 "val": "blue",
             },
-            hover_data={"x": False, "Category": False},
+            hovertemplate="%{y}<br><br>%{text}",
+            text="results",
         )
 
         for i in range(len(x_values)):
-            text = monitor_descs[i]
+            text = model_names[i]
 
             fig.add_annotation(
                 text=text,
@@ -92,7 +93,7 @@ class MonitorPlotter:
             ),
             yaxis=dict(
                 title="",
-                range=[0, self.config.max_val_value + self.config.dtick_y_value * 10],
+                range=[0, self.config.max_val_value + self.config.dtick_y_value],
                 dtick=self.config.dtick_y_value,
             ),
             showlegend=False,
@@ -101,3 +102,5 @@ class MonitorPlotter:
         fig.write_html(
             self.config.monitor_plot_html_path, config={"displayModeBar": False}
         )
+
+        myfuncs.save_python_object(self.config.monitor_plot_fig_path, fig)

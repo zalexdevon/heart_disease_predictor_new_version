@@ -1,33 +1,50 @@
 # COMMON
-target_col: "HadHeartAttack"
-metric: accuracy
+target_col: "HadHeartAttack_target"
+scoring: accuracy
+
+# DATA CORRECTION
+data_correction: 
+      val_size: 0.2
 
 # DATA TRANSFORMATION
-data_transformation: "7" # id của data_transformation
-do_smote: f # t: true, f: false
+data_transformation: 
+      no: "7" # id của data_transformation
+      do_smote: f # t: true, f: false
+      list_before_feature_transformer: []
+      list_after_feature_transformer: 
+            - PCA(n_components = 15)
 
 # MODEL TRAINING
-is_first_time: f # t or f
-model_name: XGB_12
-param_grid_model_desc:
-      n_estimators: 300
-      max_depth: 50
-      reg_alpha: 0
-      reg_lambda: 1
-      learning_rate: 0.001
-      subsample: 0.9
-      colsample_bytree: 0.9
-
-model_trainer_type: one # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, one: only one model
-N_ITER: 5 # số tổ hợp chọn khi chạy random search
+model_trainer: 
+      model_name: XGB_12
+      model_training_type: rcv  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
+      # Cần cho model_training_type = rcv, gcv, r, g
+      base_model: XGBClassifier(random_state=42)
+      n_iter: 5 # số tổ hợp chọn khi chạy random search
+      param_grid:
+            n_estimators: 300-500
+            max_depth: 50-70
+            reg_alpha: 0-1
+            reg_lambda: 1-5
+            learning_rate: 0.001-0.01
+            subsample: 0.9-1
+            colsample_bytree: 0.9-1
+      # Càn cho model_training_type = m
+      models: 
+            - LogisticRegression(C = 1.0, random_state=42)
+            - LogisticRegression(C = 5, random_state=42)
+            - LogisticRegression(C = 10, random_state=42)
+            - LogisticRegression(C = 15, random_state=42)
 
 # MODEL EVALUATION
-evaluated_data_transformation: "10"
-evaluated_model_name: XGB_1
+model_evaluation: 
+      data_transformation_no: 1
+      model_name: XGB_12
 
 # MONITOR PLOT
 monitor_plotter:
-      monitor_plot_html_path: "artifacts/monitor_plot.html"
+      monitor_plot_html_path: "artifacts/model_trainer/monitor_plot.html"
+      monitor_plot_fig_path: "artifacts/model_trainer/monitor_plot_fig.pkl"
       target_val_value: 97
       max_val_value: 100
       dtick_y_value: 5

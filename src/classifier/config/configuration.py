@@ -1,6 +1,7 @@
 from classifier.constants import *
 from classifier.Mylib.myfuncs import read_yaml, create_directories
 from classifier.entity.config_entity import (
+    DataCorrectionConfig,
     DataTransformationConfig,
     ModelTrainerConfig,
     ModelEvaluationConfig,
@@ -22,14 +23,37 @@ class ConfigurationManager:
 
         create_directories([self.config.artifacts_root])
 
+    def get_data_correction_config(self) -> DataCorrectionConfig:
+        config = self.config.data_correction
+        params = self.params.data_correction
+
+        create_directories([config.root_dir])
+
+        return DataCorrectionConfig(
+            # config input
+            train_raw_data_path=config.train_raw_data_path,
+            # config output
+            root_dir=config.root_dir,
+            preprocessor_path=config.preprocessor_path,
+            train_data_path=config.train_data_path,
+            val_data_path=config.val_data_path,
+            # params
+            val_size=params.val_size,
+            # common params
+            target_col=self.params.target_col,
+        )
+
     def get_data_transformation_config(self) -> DataTransformationConfig:
         config = self.config.data_transformation
+        params = self.params.data_transformation
 
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
+            # config input
             train_data_path=config.train_data_path,
             val_data_path=config.val_data_path,
+            # config output
             root_dir=config.root_dir,
             preprocessor_path=config.preprocessor_path,
             classes_path=config.classes_path,
@@ -37,8 +61,12 @@ class ConfigurationManager:
             train_target_path=config.train_target_path,
             val_features_path=config.val_features_path,
             val_target_path=config.val_target_path,
+            # params
+            do_smote=params.do_smote,
+            list_before_feature_transformer=params.list_before_feature_transformer,
+            list_after_feature_transformer=params.list_after_feature_transformer,
+            # common params
             target_col=self.params.target_col,
-            do_smote=self.params.do_smote,
         )
 
         return data_transformation_config
@@ -47,29 +75,30 @@ class ConfigurationManager:
         self,
     ) -> ModelTrainerConfig:
         config = self.config.model_trainer
+        params = self.params.model_trainer
 
         create_directories([config.root_dir])
 
-        param_grid_model = myfuncs.get_param_grid_model(
-            self.params.param_grid_model_desc
-        )
-
         model_trainer_config = ModelTrainerConfig(
+            # config input
             train_feature_path=config.train_feature_path,
             train_target_path=config.train_target_path,
             val_feature_path=config.val_feature_path,
             val_target_path=config.val_target_path,
+            # config output
             root_dir=config.root_dir,
             best_model_path=config.best_model_path,
+            results_path=config.results_path,
             list_monitor_components_path=config.list_monitor_components_path,
-            model_name=self.params.model_name,
-            param_grid_model_desc=self.params.param_grid_model_desc,
-            param_grid_model=param_grid_model,
-            data_transformation=str(self.params.data_transformation),
-            N_ITER=self.params.N_ITER,
-            model_trainer_type=self.params.model_trainer_type,
-            metric=self.params.metric,
-            is_first_time=self.params.is_first_time,
+            # params
+            model_name=params.model_name,
+            model_training_type=params.model_training_type,
+            base_model=params.base_model,
+            n_iter=params.n_iter,
+            param_grid=params.param_grid,
+            models=params.models,
+            # common params
+            scoring=self.params.scoring,
         )
 
         return model_trainer_config
@@ -78,14 +107,19 @@ class ConfigurationManager:
     def get_model_evaluation_config(self) -> ModelEvaluationConfig:
         config = self.config.model_evaluation
 
+        create_directories([config.root_dir])
+
         obj = ModelEvaluationConfig(
+            # input
             test_data_path=config.test_data_path,
             preprocessor_path=config.preprocessor_path,
             model_path=config.model_path,
-            result=config.result,
-            target_col=config.target_col,
-            metric=config.metric,
-            evaluated_model_name=config.evaluated_model_name,
+            # output
+            root_dir=config.root_dir,
+            results_path=config.results_path,
+            # common params
+            target_col=self.params.target_col,
+            scoring=self.params.scoring,
         )
 
         return obj
@@ -95,6 +129,7 @@ class ConfigurationManager:
 
         obj = MonitorPlotterConfig(
             monitor_plot_html_path=config.monitor_plot_html_path,
+            monitor_plot_fig_path=config.monitor_plot_fig_path,
             target_val_value=config.target_val_value,
             max_val_value=config.max_val_value,
             dtick_y_value=config.dtick_y_value,

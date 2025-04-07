@@ -5,17 +5,17 @@ import sys
 import os
 
 params = read_yaml(Path(PARAMS_FILE_PATH))
-data_transformation = params.data_transformation
 
-model_name = params.model_name
-evaluated_data_transformation = params.evaluated_data_transformation
-evaluated_model_name = params.evaluated_model_name
+P = params.data_transformation.no
+T = params.model_trainer.model_name
+PE = params.model_evaluation.data_transformation_no
+E = params.model_evaluation.model_name
 
 replace_dict = {
-    "${P}": data_transformation,
-    "${T}": model_name,
-    "${E}": evaluated_model_name,
-    "${PE}": evaluated_data_transformation,
+    "${P}": P,
+    "${T}": T,
+    "${PE}": PE,
+    "${E}": E,
 }
 
 sub_param_for_yaml_file("config_p.yaml", "config.yaml", replace_dict)

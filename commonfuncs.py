@@ -1000,7 +1000,6 @@ def get_different_types_cols_from_df_4(df):
     nominal_cols = cols[cols.str.endswith("nom")].tolist()
     ordinal_cols = cols[cols.str.endswith("ord")].tolist()
     cat_cols = binary_cols + nominal_cols + ordinal_cols
-    target_col = cols[cols.str.endswith("target")].tolist()[0]
 
     return (
         numeric_cols,
@@ -1009,7 +1008,6 @@ def get_different_types_cols_from_df_4(df):
         binary_cols,
         nominal_cols,
         ordinal_cols,
-        target_col,
     )
 
 

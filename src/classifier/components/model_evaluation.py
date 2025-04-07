@@ -11,30 +11,57 @@ class ModelEvaluation:
         self.config = config
 
     def evaluate_model(self):
+        # Load data
         df = myfuncs.load_python_object(self.config.test_data_path)
         preprocessor = myfuncs.load_python_object(self.config.preprocessor_path)
+        self.model = myfuncs.load_python_object(self.config.model_path)
+
+        # Transform test data
         df_transformed = preprocessor.transform(df)
-        df_feature = df_transformed.drop(columns=[self.config.target_col])
-        df_target = df_transformed[self.config.target_col]
+        self.df_feature = df_transformed.drop(columns=[self.config.target_col])
+        self.df_target = df_transformed[self.config.target_col]
 
-        model = myfuncs.load_python_object(self.config.model_path)
+        # Các chỉ số đánh giá của model
+        self.best_model_results_text = (
+            "========KẾT QUẢ ĐÁNH GIÁ MÔ HÌNH================\n"
+        )
 
-        score = self.evaluate(df_target, model, df_feature)
+        ## Chỉ số scoring
+        self.find_model_scoring()
+        self.best_model_results_text += f"====CHỈ SỐ SCORING====\n"
+        self.best_model_results_text += f"{self.config.scoring}: {self.test_score}"
 
-        print(f"{self.config.evaluated_model_name}: {score}\n\n")
+        # Các chỉ số khác bao gồm accuracy + classfication report
+        feature_prediction = self.model.predict(self.df_feature)
+        accuracy = metrics.accuracy_score(self.df_target, feature_prediction)
 
-        with open(self.config.result, "a") as file:
-            file.write(f"{self.config.evaluated_model_name}: {score}\n\n")
+        classification_report = metrics.classification_report(
+            self.df_target, feature_prediction
+        )
 
-    def evaluate(self, df_target, model, df_feature):
-        while True:
-            if self.config.metric == "accuracy":
-                df_feature_prediction = model.predict(df_feature)
-                return metrics.accuracy_score(df_target, df_feature_prediction)
+        self.best_model_results_text += "\n====CHỈ SỐ ĐÁNH GIÁ KHÁC====\n"
+        self.best_model_results_text += f"Accuracy: {accuracy}"
+        self.best_model_results_text += (
+            f"Classification_report: \n{classification_report}\n"
+        )
 
-            if self.config.metric == "neg_log_loss":
-                df_feature_prediction = model.predict_proba(df_feature)
+        # In ra kết quả đánh giá
+        print(self.best_model_results_text)
 
-                return metrics.log_loss(df_target, df_feature_prediction)
+        # Lưu chỉ số đánh giá vào file results.txt
+        with open(self.config.results_path, mode="w") as file:
+            file.write(self.best_model_results_text)
 
-            return
+    def find_model_scoring(self):
+        if self.config.scoring == "accuracy":
+            df_feature_prediction = self.model.predict(self.df_feature)
+            self.test_score = metrics.accuracy_score(
+                self.df_target, df_feature_prediction
+            )
+        elif self.config.scoring == "log_loss":
+            df_feature_prediction = self.model.predict_proba(self.df_feature)
+            self.test_score = metrics.log_loss(self.df_target, df_feature_prediction)
+        else:
+            raise ValueError(
+                "===== Chỉ mới định nghĩa cho accuracy và log_loss =============="
+            )
