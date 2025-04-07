@@ -75,6 +75,10 @@ class ManyModelsTypeModelTrainer:
                 f"Model no. {index} -> Train {self.config.scoring}: {train_scoring}, Val {self.config.scoring}: {val_scoring}\n"
             )
 
+            # TODO: d
+            print(f"C = {model.C}")
+            # d
+
             self.train_scorings.append(train_scoring)
             self.val_scorings.append(val_scoring)
 
