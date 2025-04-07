@@ -94,10 +94,8 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         X = self.column_transformer.transform(X)
 
-        self.cols = (
-            myfuncs.get_real_column_name_from_get_feature_names_out(
-                self.column_transformer.get_feature_names_out()
-            ),
+        self.cols = myfuncs.get_real_column_name_from_get_feature_names_out(
+            self.column_transformer.get_feature_names_out()
         )
 
         # TODO: d
