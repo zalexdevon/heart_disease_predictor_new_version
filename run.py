@@ -12,7 +12,7 @@ print("params.yaml:\n")
 print(params)
 # d
 
-P = params.data_transformation.no
+P = params.data_transformation.number
 T = params.model_trainer.model_name
 PE = params.model_evaluation.data_transformation_no
 E = params.model_evaluation.model_name
