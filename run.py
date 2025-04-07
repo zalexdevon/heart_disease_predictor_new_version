@@ -7,6 +7,11 @@ import yaml
 
 params = read_yaml(PARAMS_FILE_PATH)
 
+# TODO: d
+print("params.yaml:\n")
+print(params)
+# d
+
 P = params.data_transformation.no
 T = params.model_trainer.model_name
 PE = params.model_evaluation.data_transformation_no
