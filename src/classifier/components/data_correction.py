@@ -422,7 +422,15 @@ class DataCorrection:
             random_state=42,
         )
 
+        # Get class_names
+        class_names = (
+            df_transformed[self.config.target_col].cat.categories.tolist()
+            if self.config.predictor_type == "c"
+            else None
+        )
+
         # Lưu dữ liệu
         myfuncs.save_python_object(self.config.preprocessor_path, self.preprocessor)
         myfuncs.save_python_object(self.config.train_data_path, df_train)
         myfuncs.save_python_object(self.config.val_data_path, df_val)
+        myfuncs.save_python_object(self.config.class_names_path, class_names)

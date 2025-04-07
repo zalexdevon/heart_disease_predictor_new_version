@@ -154,7 +154,6 @@ class DataTransformation:
         self.feature_cols = myfuncs.do_list_subtraction_3(
             self.df_train.columns.tolist(), [self.config.target_col]
         )
-        self.classes = np.asarray(self.df_train[self.config.target_col].cat.categories)
 
         # Load các transfomers
         self.list_before_feature_transformer = [
@@ -224,7 +223,6 @@ class DataTransformation:
         df_val_target = df_val_transformed[self.config.target_col]
 
         myfuncs.save_python_object(self.config.preprocessor_path, self.preprocessor)
-        myfuncs.save_python_object(self.config.classes_path, self.classes)
         myfuncs.save_python_object(self.config.train_features_path, df_train_feature)
         myfuncs.save_python_object(self.config.train_target_path, df_train_target)
         myfuncs.save_python_object(self.config.val_features_path, df_val_feature)

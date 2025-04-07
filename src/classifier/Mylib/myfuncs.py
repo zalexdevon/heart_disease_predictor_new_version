@@ -1442,7 +1442,12 @@ def evaluate_classifier_15(
 
 
 def evaluate_regressor_16(
-    model, train_feature_data, train_target_data, val_feature_data, val_target_data
+    model,
+    train_feature_data,
+    train_target_data,
+    val_feature_data,
+    val_target_data,
+    class_names=None,
 ):
     """Đánh giá chung cho 1 regressor
 
@@ -1528,7 +1533,9 @@ def evaluate_classifier_on_test_data_18(model, feature_data, target_data, class_
     return model_results_text
 
 
-def evaluate_regressor_on_test_data_18(model, feature_data, target_data):
+def evaluate_regressor_on_test_data_18(
+    model, feature_data, target_data, class_names=None
+):
     """Đánh giá chung cho 1 classifier
 
     Định dạng của kết quả:

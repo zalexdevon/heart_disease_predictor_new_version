@@ -12,12 +12,14 @@ class DataCorrectionConfig:
     preprocessor_path: Path
     train_data_path: Path
     val_data_path: Path
+    class_names_path: Path
 
     # params
     val_size: float
 
     # common params
     target_col: str
+    predictor_type: str
 
 
 @dataclass(frozen=True)
@@ -29,7 +31,6 @@ class DataTransformationConfig:
     # config output
     root_dir: Path
     preprocessor_path: Path
-    classes_path: Path
     train_features_path: Path
     train_target_path: Path
     val_features_path: Path
@@ -51,6 +52,7 @@ class ModelTrainerConfig:
     train_target_path: Path
     val_feature_path: Path
     val_target_path: Path
+    class_names_path: Path
 
     # config output
     root_dir: Path
@@ -91,6 +93,7 @@ class ModelEvaluationConfig:
     test_data_path: Path
     preprocessor_path: Path
     model_path: Path
+    class_names_path: Path
 
     # output
     root_dir: Path

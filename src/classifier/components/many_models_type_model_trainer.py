@@ -46,6 +46,9 @@ class ManyModelsTypeModelTrainer:
 
         self.num_models = len(self.models)
 
+        # Load classes
+        self.class_names = myfuncs.load_python_object(self.config.class_names_path)
+
     def train_model(self):
         print(
             f"\n========TIEN HANH TRAIN {self.num_models} MODELS !!!!!!================\n"
@@ -156,6 +159,7 @@ class ManyModelsTypeModelTrainer:
             self.train_target_data,
             self.val_feature_data,
             self.val_target_data,
+            self.class_names,
         )
 
         # In ra kết quả đánh giá

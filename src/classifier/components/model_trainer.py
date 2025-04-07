@@ -110,6 +110,9 @@ class ModelTrainer:
                 "===== Giá trị model_training_type không hợp lệ =============="
             )
 
+        # Load classes
+        self.class_names = myfuncs.load_python_object(self.config.class_names_path)
+
     def train_model(self):
         self.searcher.fit(self.features, self.target)
 
@@ -157,6 +160,7 @@ class ModelTrainer:
             self.train_target_data,
             self.val_feature_data,
             self.val_target_data,
+            self.class_names,
         )
 
         # In ra kết quả đánh giá

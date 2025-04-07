@@ -15,6 +15,7 @@ class ModelEvaluation:
         df = myfuncs.load_python_object(self.config.test_data_path)
         preprocessor = myfuncs.load_python_object(self.config.preprocessor_path)
         self.model = myfuncs.load_python_object(self.config.model_path)
+        self.class_names = myfuncs.load_python_object(self.config.class_names_path)
 
         # Transform test data
         df_transformed = preprocessor.transform(df)
@@ -40,9 +41,7 @@ class ModelEvaluation:
             else myfuncs.evaluate_regressor_on_test_data_18
         )
         self.model_results_text += evaluate_func(
-            self.model,
-            self.df_feature,
-            self.df_target,
+            self.model, self.df_feature, self.df_target, self.class_names
         )
 
         # In ra kết quả đánh giá

@@ -38,10 +38,12 @@ class ConfigurationManager:
             preprocessor_path=config.preprocessor_path,
             train_data_path=config.train_data_path,
             val_data_path=config.val_data_path,
+            class_names_path=config.class_names_path,
             # params
             val_size=params.val_size,
             # common params
             target_col=self.params.target_col,
+            predictor_type=self.params.predictor_type,
         )
 
     def get_data_transformation_config(self) -> DataTransformationConfig:
@@ -86,6 +88,7 @@ class ConfigurationManager:
             train_target_path=config.train_target_path,
             val_feature_path=config.val_feature_path,
             val_target_path=config.val_target_path,
+            class_names_path=config.class_names_path,
             # config output
             root_dir=config.root_dir,
             best_model_path=config.best_model_path,
@@ -134,6 +137,7 @@ class ConfigurationManager:
             test_data_path=config.test_data_path,
             preprocessor_path=config.preprocessor_path,
             model_path=config.model_path,
+            class_names_path=config.class_names_path,
             # output
             root_dir=config.root_dir,
             results_path=config.results_path,
