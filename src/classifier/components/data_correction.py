@@ -257,9 +257,8 @@ class HandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
 
 
 class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, target_col) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.target_col = target_col
 
     def transform(self, X, y=None):
         df = X
