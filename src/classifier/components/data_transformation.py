@@ -49,6 +49,11 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
         super().__init__()
 
     def fit(self, X, y=None):
+        # TODO: d
+        print("===========Các cột khi vào DuringFeatureTransformer ===========\n")
+        print(X.columns.tolist())
+        # d
+
         # Lấy các cột numeric, nominal, ordinal
         (
             numeric_cols,
