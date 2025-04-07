@@ -44,9 +44,36 @@ class ManyModelsTypeModelTrainer:
             myfuncs.convert_string_to_object_4(model) for model in self.config.models
         ]
 
+        self.num_models = len(self.models)
+
     def train_model(self):
-        for model in self.models:
-            model.fit(self.train_feature_data, self.train_target_data)
+        print(
+            f"\n========TIEN HANH TRAIN {self.num_models} MODELS !!!!!!================\n"
+        )
+        self.train_scorings = []
+        self.val_scorings = []
+        for index, model in enumerate(self.models):
+            model.fit(self.val_feature_data, self.train_target_data)
+            train_scoring, val_scoring = self.evaluate_model(
+                model,
+                self.train_feature_data,
+                self.train_target_data,
+                self.val_feature_data,
+                self.val_target_data,
+                self.config.scoring,
+            )
+
+            # In kết quả
+            print(
+                f"Model no. {index} -> Train score: {train_scoring}, Val score: {val_scoring}"
+            )
+
+            self.train_scorings.append(train_scoring)
+            self.val_scorings.append(val_scoring)
+
+        print(
+            f"\n========KET THUC TRAIN {self.num_models} MODELS !!!!!!================\n"
+        )
 
     def evaluate_model(
         self, model, train_feature, train_target, val_feature, val_target, scoring
@@ -78,19 +105,12 @@ class ManyModelsTypeModelTrainer:
             self.config.target_score = -self.config.target_score
             sign_for_score = -1
 
-        train_val_scorings = [
-            self.evaluate_model(
-                model,
-                self.train_feature_data,
-                self.train_target_data,
-                self.val_feature_data,
-                self.val_target_data,
-                self.config.scoring,
-            )
-            for model in self.models
+        self.train_scorings_to_find_the_best = [
+            item * sign_for_score for item in self.train_scorings
         ]
-        self.train_scorings = [item[0] * sign_for_score for item in train_val_scorings]
-        self.val_scorings = [item[1] * sign_for_score for item in train_val_scorings]
+        self.val_scorings_to_find_the_best = [
+            item * sign_for_score for item in self.val_scorings
+        ]
 
     def find_best_model_and_scoring(self):
         """TÌm model tốt nhất và scoring tương ứng
@@ -105,18 +125,19 @@ class ManyModelsTypeModelTrainer:
 
         # Tìm index của best model
         indexs_good_model = np.where(
-            (self.val_scorings > self.config.target_score)
-            & (self.train_scorings > self.config.target_score)
+            (self.val_scorings_to_find_the_best > self.config.target_score)
+            & (self.train_scorings_to_find_the_best > self.config.target_score)
         )[0]
 
         index_best_model = None
         if (
             len(indexs_good_model) == 0
         ):  # Nếu ko có model nào đạt chỉ tiêu thì lấy cái tốt nhất
-            index_best_model = np.argmax(self.val_scorings)
+            index_best_model = np.argmax(self.val_scorings_to_find_the_best)
         else:
             val_series = pd.Series(
-                self.val_scorings[indexs_good_model], index=indexs_good_model
+                self.val_scorings_to_find_the_best[indexs_good_model],
+                index=indexs_good_model,
             )
             index_best_model = val_series.idxmax()
 

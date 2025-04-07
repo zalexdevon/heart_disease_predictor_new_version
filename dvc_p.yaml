@@ -20,7 +20,7 @@ stages:
             deps:
                   - artifacts/data_transformation
             params:
-                  - model_name
+                  - model_trainer
 
       test_data_correction: 
             cmd: python src/classifier/pipeline/stage_test_data_correction.py
