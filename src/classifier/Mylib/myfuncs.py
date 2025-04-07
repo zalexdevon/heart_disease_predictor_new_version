@@ -72,6 +72,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image
 from typing import Union
+from sklearn import metrics
 
 
 def get_sum(a, b):
@@ -1393,3 +1394,76 @@ def get_different_types_cols_from_df_14(df: pd.DataFrame):
         nominal_cols,
         ordinal_cols,
     )
+
+
+def evaluate_classifier_15(
+    model, train_feature_data, train_target_data, val_feature_data, val_target_data
+):
+    """Đánh giá chung cho 1 classifier
+
+    Định dạng của kết quả:
+
+        Train accuracy:
+
+        Val accuracy:
+
+        Train classification_report:
+
+        Val classification_report:
+
+    """
+    train_prediction = model.predict(train_feature_data)
+    val_prediction = model.predict(val_feature_data)
+    train_accuracy = metrics.accuracy_score(train_target_data, train_prediction)
+    val_accuracy = metrics.accuracy_score(val_target_data, val_prediction)
+
+    train_classification_report = metrics.classification_report(
+        train_target_data, train_prediction
+    )
+    val_classification_report = metrics.classification_report(
+        val_target_data, val_prediction
+    )
+
+    model_results_text = f"Train accuracy: {train_accuracy}"
+    model_results_text += f"Val accuracy: {val_accuracy}\n"
+    model_results_text += (
+        f"Train classification_report: \n{train_classification_report}\n"
+    )
+    model_results_text += f"Val classification_report: \n{val_classification_report}"
+
+    return model_results_text
+
+
+def evaluate_regressor_16(
+    model, train_feature_data, train_target_data, val_feature_data, val_target_data
+):
+    """Đánh giá chung cho 1 regressor
+
+    Định dạng của kết quả:
+
+        Train RMSE:
+
+        Val RMSE:
+
+        Train MAE:
+
+        Val MAE:
+
+    """
+    train_prediction = model.predict(train_feature_data)
+    val_prediction = model.predict(val_feature_data)
+    train_rmse = np.sqrt(
+        metrics.mean_squared_error(train_target_data, train_prediction)
+    )
+    val_rmse = np.sqrt(metrics.mean_squared_error(val_target_data, val_prediction))
+    train_mae = np.sqrt(
+        metrics.mean_absolute_error(train_target_data, train_prediction)
+    )
+    val_mae = np.sqrt(metrics.mean_absolute_error(val_target_data, val_prediction))
+
+    model_results_text = f"Train RMSE: {train_rmse}"
+    model_results_text += f"Val RMSE: {val_rmse}\n"
+    model_results_text = f"Train MAE: {train_mae}"
+    model_results_text += f"Val MAE: {val_mae}\n"
+
+    return model_results_text

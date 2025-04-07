@@ -58,7 +58,11 @@ class ModelTrainer:
         # Load scoring để sử dụng vào RandomizedSearchCV, GridSearchCV (vd: log_loss -> neg_log_loss)
         self.scoring = self.config.scoring
         if self.config.scoring == "log_loss":
-            self.scoring = "neg_" + self.config.scoring
+            self.scoring = "neg_log_loss"
+        elif self.config.scoring == "mse":
+            self.scoring = "neg_mean_squared_error"
+        elif self.config.scoring == "mae":
+            self.scoring = "neg_mean_absolute_error"
 
         # Load searcher
         if self.config.model_training_type == "r":
@@ -140,28 +144,19 @@ class ModelTrainer:
         self.best_model_results_text += f"Val {self.config.scoring}: {self.val_scoring}"
 
         # Các chỉ số khác bao gồm accuracy + classfication report
-        train_prediction = self.best_model.predict(self.train_feature_data)
-        val_prediction = self.best_model.predict(self.val_feature_data)
-        train_accuracy = metrics.accuracy_score(
-            self.train_target_data, train_prediction
-        )
-        val_accuracy = metrics.accuracy_score(self.val_target_data, val_prediction)
+        self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
 
-        train_classification_report = metrics.classification_report(
-            self.train_target_data, train_prediction
+        evaluate_func = (
+            myfuncs.evaluate_classifier_15
+            if self.config.predictor_type == "c"
+            else myfuncs.evaluate_regressor_16
         )
-        val_classification_report = metrics.classification_report(
-            self.val_target_data, val_prediction
-        )
-
-        self.best_model_results_text += "\n====CHỈ SỐ ĐÁNH GIÁ KHÁC====\n"
-        self.best_model_results_text += f"Train accuracy: {train_accuracy}"
-        self.best_model_results_text += f"Val accuracy: {val_accuracy}\n"
-        self.best_model_results_text += (
-            f"Train classification_report: \n{train_classification_report}\n"
-        )
-        self.best_model_results_text += (
-            f"Val classification_report: \n{val_classification_report}"
+        self.best_model_results_text += evaluate_func(
+            self.best_model,
+            self.train_feature_data,
+            self.train_target_data,
+            self.val_feature_data,
+            self.val_target_data,
         )
 
         # In ra kết quả đánh giá

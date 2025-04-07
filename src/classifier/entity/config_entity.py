@@ -69,6 +69,7 @@ class ModelTrainerConfig:
     # common params
     scoring: str
     target_score: float
+    predictor_type: str
 
 
 # TEST DATA CORRECTION

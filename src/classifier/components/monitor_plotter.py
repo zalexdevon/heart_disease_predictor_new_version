@@ -15,7 +15,6 @@ class MonitorPlotter:
         model_names = [item[0] for item in monitor]
         train_scores = [item[1] for item in monitor]
         val_scores = [item[2] for item in monitor]
-        results = [item[3] for item in monitor]
 
         for i in range(len(train_scores)):
             if train_scores[i] > self.config.max_val_value:
@@ -26,9 +25,15 @@ class MonitorPlotter:
 
         x_values = list(range(1, len(train_scores) + 1))
 
-        df = pd.DataFrame({"x": x_values, "train": train_scores, "val": val_scores, "results": results,})
+        df = pd.DataFrame(
+            {
+                "x": x_values,
+                "train": train_scores,
+                "val": val_scores,
+            }
+        )
         df_long = df.melt(
-            id_vars=["x", "results"],
+            id_vars=["x"],
             value_vars=["train", "val"],
             var_name="Category",
             value_name="y",
@@ -44,8 +49,7 @@ class MonitorPlotter:
                 "train": "gray",
                 "val": "blue",
             },
-            hovertemplate="%{y}<br><br>%{text}",
-            text="results",
+            hover_data={"x": False, "y": True, "Category": False},
         )
 
         for i in range(len(x_values)):

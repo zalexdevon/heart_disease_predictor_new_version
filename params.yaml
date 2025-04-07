@@ -1,4 +1,5 @@
 # COMMON
+predictor_type: c # c: classifier, r: regressor
 target_col: "HadHeartAttack_target"
 scoring: accuracy
 target_score: 0.8
@@ -18,14 +19,14 @@ data_transformation:
 
 # MODEL TRAINING
 model_trainer: 
-      model_name: XGB_14
+      model_name: XGB_15
       model_training_type: r  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
       # Cần cho model_training_type = rcv, gcv, r, g
       base_model: XGBClassifier(random_state=42)
-      n_iter: 5 # số tổ hợp chọn khi chạy random search
+      n_iter: 1 # số tổ hợp chọn khi chạy random search
       param_grid:
-            n_estimators: 300-500
-            max_depth: 50-70
+            n_estimators: 100-200
+            max_depth: 10-20
             reg_alpha: 0-1
             reg_lambda: 1-5
             learning_rate: 0.001-0.01
