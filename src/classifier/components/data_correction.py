@@ -369,7 +369,7 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
         for col, value in ord_values_dict.items():
             df[col] = df[col].cat.reorder_categories(value, ordered=True)
 
-        df[self.target_col] = df[self.target_col].cat.reorder_categories(
+        df[target_col] = df[target_col].cat.reorder_categories(
             ["No", "Yes"], ordered=True
         )
 
