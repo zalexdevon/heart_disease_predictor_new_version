@@ -19,6 +19,9 @@ class UnnecessaryColsDeleter(
     ) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
@@ -36,12 +39,19 @@ class UnnecessaryColsDeleter(
 
         return df
 
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
+
 
 class ColNamesPreprocessor(BaseEstimator, TransformerMixin):
     def __init__(
         self,
     ) -> None:
         super().__init__()
+
+    def fit(self, X, y=None):
+        return self
 
     def transform(self, X, y=None):
         df = X
@@ -109,6 +119,10 @@ class ColNamesPreprocessor(BaseEstimator, TransformerMixin):
 
         return df
 
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
+
 
 class ColDatatypePreprocessor(
     BaseEstimator, TransformerMixin
@@ -118,10 +132,17 @@ class ColDatatypePreprocessor(
     ) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class NumericColDataPreprocessor(
@@ -131,6 +152,9 @@ class NumericColDataPreprocessor(
         self,
     ) -> None:
         super().__init__()
+
+    def fit(self, X, y=None):
+        return self
 
     def transform(self, X, y=None):
         df = X
@@ -145,6 +169,10 @@ class NumericColDataPreprocessor(
 
         return df
 
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
+
 
 class NumericCatColDataPreprocessor(
     BaseEstimator, TransformerMixin
@@ -153,6 +181,9 @@ class NumericCatColDataPreprocessor(
         self,
     ) -> None:
         super().__init__()
+
+    def fit(self, X, y=None):
+        return self
 
     def transform(self, X, y=None):
         df = X
@@ -165,6 +196,10 @@ class NumericCatColDataPreprocessor(
 
         return df
 
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
+
 
 class BinaryColDataPreprocessor(
     BaseEstimator, TransformerMixin
@@ -174,10 +209,17 @@ class BinaryColDataPreprocessor(
     ) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class NominalColDataPreprocessor(
@@ -188,10 +230,17 @@ class NominalColDataPreprocessor(
     ) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class OrdinalColDataPreprocessor(
@@ -202,10 +251,17 @@ class OrdinalColDataPreprocessor(
     ) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class TargetColDataPreprocessor(
@@ -214,10 +270,17 @@ class TargetColDataPreprocessor(
     def __init__(self) -> None:
         super().__init__()
 
+    def fit(self, X, y=None):
+        return self
+
     def transform(self, X, y=None):
         df = X
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class HandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
@@ -316,6 +379,10 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
         df = df.drop_duplicates()
 
         return df
+
+    def fit_transform(self, X, y=None):
+        self.fit(X)
+        return self.transform(X)
 
 
 class DataCorrection:
