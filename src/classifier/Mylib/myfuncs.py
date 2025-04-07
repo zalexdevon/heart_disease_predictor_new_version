@@ -1431,7 +1431,7 @@ def evaluate_classifier_15(
         model, val_feature_data, val_target_data, class_names
     )
 
-    model_results_text = f"Train accuracy: {train_accuracy}"
+    model_results_text = f"Train accuracy: {train_accuracy}\n"
     model_results_text += f"Val accuracy: {val_accuracy}\n"
     model_results_text += (
         f"Train classification_report: \n{train_classification_report}\n"
@@ -1473,9 +1473,9 @@ def evaluate_regressor_16(
     )
     val_mae = np.sqrt(metrics.mean_absolute_error(val_target_data, val_prediction))
 
-    model_results_text = f"Train RMSE: {train_rmse}"
+    model_results_text = f"Train RMSE: {train_rmse}\n"
     model_results_text += f"Val RMSE: {val_rmse}\n"
-    model_results_text = f"Train MAE: {train_mae}"
+    model_results_text = f"Train MAE: {train_mae}\n"
     model_results_text += f"Val MAE: {val_mae}\n"
 
     return model_results_text

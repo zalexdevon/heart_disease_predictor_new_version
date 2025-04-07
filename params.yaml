@@ -19,7 +19,7 @@ data_transformation:
 
 # MODEL TRAINING
 model_trainer: 
-      model_name: XGB_22
+      model_name: XGB_23
       model_training_type: m  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
       # Cần cho model_training_type = rcv, gcv, r, g
       base_model: XGBClassifier(random_state=42)
@@ -34,7 +34,7 @@ model_trainer:
             colsample_bytree: 0.9-1
       # Càn cho model_training_type = m
       models: 
-            - LogisticRegression(C = 1.0, random_state=42)
+            - LogisticRegression(C = 0.1, random_state=42)
             - LogisticRegression(C = 5, random_state=42)
             - LogisticRegression(C = 10, random_state=42)
             - LogisticRegression(C = 15, random_state=42)
