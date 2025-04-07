@@ -792,9 +792,14 @@ class ColumnsDeleter(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
+        # TODO: d
+        print("========các cột khi vào ColumnsDeleter==============\n")
+        print(X.columns.tolist())
+        # d
+
         X = X.drop(columns=self.columns)
 
-        self.remaining_cols = X.columns.tolist()
+        self.cols = X.columns.tolist()
         return X
 
     def fit_transform(self, X, y=None):
@@ -802,4 +807,4 @@ class ColumnsDeleter(BaseEstimator, TransformerMixin):
         return self.transform(X)
 
     def get_feature_names_out(self, input_features=None):
-        return self.remaining_cols
+        return self.cols
