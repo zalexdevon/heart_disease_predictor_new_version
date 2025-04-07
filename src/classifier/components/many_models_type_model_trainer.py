@@ -88,12 +88,12 @@ class ManyModelsTypeModelTrainer:
             self.config.target_score = -self.config.target_score
             sign_for_score = -1
 
-        self.train_scorings_to_find_the_best = [
-            item * sign_for_score for item in self.train_scorings
-        ]
-        self.val_scorings_to_find_the_best = [
-            item * sign_for_score for item in self.val_scorings
-        ]
+        self.train_scorings_to_find_the_best = np.asarray(
+            [item * sign_for_score for item in self.train_scorings]
+        )
+        self.val_scorings_to_find_the_best = np.asarray(
+            [item * sign_for_score for item in self.val_scorings]
+        )
 
     def find_best_model_and_scoring(self):
         """TÌm model tốt nhất và scoring tương ứng
