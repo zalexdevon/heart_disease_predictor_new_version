@@ -233,7 +233,7 @@ class DataTransformation:
             nominal_cols,
             ordinal_cols,
             target_col,
-        ) = myfuncs.get_different_types_cols_from_df_4(X)
+        ) = myfuncs.get_different_types_cols_from_df_4(self.df_train)
 
         self.numeric_cols = numeric_cols + numericcat_cols
         self.nominal_cols = nominal_cols
