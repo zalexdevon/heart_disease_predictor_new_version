@@ -62,8 +62,7 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
             binary_cols,
             nominal_cols,
             ordinal_cols,
-            target_col,
-        ) = myfuncs.get_different_types_cols_from_df_4(X)
+        ) = myfuncs.get_different_types_cols_from_df_14(X)
 
         numeric_cols = numeric_cols + numericcat_cols
         ordinal_cols = ordinal_cols + binary_cols

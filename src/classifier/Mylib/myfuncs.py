@@ -992,7 +992,16 @@ def do_list_subtraction_3(a: list, b: list):
     return result
 
 
-def get_different_types_cols_from_df_4(df):
+@ensure_annotations
+def get_different_types_cols_from_df_4(df: pd.DataFrame):
+    """Tìm các cột kiểu numeric, numericCat, cat, binary, nominal, ordinal  target từ df
+
+    Lưu ý: có tìm luôn cột **target**
+
+    Returns:
+        (numeric_cols, numericCat_cols, cat_cols, binary_cols, nominal_cols, ordinal_cols):
+    """
+
     cols = pd.Series(df.columns)
     numeric_cols = cols[cols.str.endswith("num")].tolist()
     numericCat_cols = cols[cols.str.endswith("numcat")].tolist()
@@ -1360,3 +1369,27 @@ def convert_pdDataframe_to_tfDataset_13(
     dataset = dataset.batch(batch_size)
 
     return dataset
+
+
+@ensure_annotations
+def get_different_types_cols_from_df_14(df: pd.DataFrame):
+    """Tìm các cột kiểu numeric, numericCat, cat, binary, nominal, ordinal từ df
+    Returns:
+        (numeric_cols, numericCat_cols, cat_cols, binary_cols, nominal_cols, ordinal_cols):
+    """
+    cols = pd.Series(df.columns)
+    numeric_cols = cols[cols.str.endswith("num")].tolist()
+    numericCat_cols = cols[cols.str.endswith("numcat")].tolist()
+    binary_cols = cols[cols.str.endswith("bin")].tolist()
+    nominal_cols = cols[cols.str.endswith("nom")].tolist()
+    ordinal_cols = cols[cols.str.endswith("ord")].tolist()
+    cat_cols = binary_cols + nominal_cols + ordinal_cols
+
+    return (
+        numeric_cols,
+        numericCat_cols,
+        cat_cols,
+        binary_cols,
+        nominal_cols,
+        ordinal_cols,
+    )
