@@ -119,14 +119,18 @@ class DuringFeatureColumnTransformer(BaseEstimator, TransformerMixin):
         super().__init__()
 
     def fit(self, X, y=None):
-        cols = pd.Series(X.columns)
-        numeric_cols = cols[
-            cols.str.endswith("num") | cols.str.endswith("numcat")
-        ].tolist()
-        nominal_cols = cols[cols.str.endswith("nom")].tolist()
-        ordinal_cols = cols[
-            cols.str.endswith("ord") | cols.str.endswith("bin")
-        ].tolist()
+        (
+            numeric_cols,
+            numericcat_cols,
+            cat_cols,
+            binary_cols,
+            nominal_cols,
+            ordinal_cols,
+            target_col,
+        ) = myfuncs.get_different_types_cols_from_df_4(X)
+
+        numeric_cols = numeric_cols + numericcat_cols
+        ordinal_cols = ordinal_cols + binary_cols
 
         nominal_cols_pipeline = Pipeline(
             steps=[
@@ -206,6 +210,10 @@ class DataTransformation:
         )
         self.classes = np.asarray(self.df_train[self.config.target_col].cat.categories)
 
+        # TODO: d
+        print(f"========feature cols===========\n {self.feature_cols}")
+        # d
+
         # Load các transfomers
         self.list_before_feature_transformer = [
             myfuncs.convert_string_to_object_4(transformer)
@@ -217,14 +225,19 @@ class DataTransformation:
         ]
 
         # Lấy các cột numeric, nominal, ordinal
-        cols = pd.Series(self.df_train.columns)
-        self.numeric_cols = cols[
-            cols.str.endswith("num") | cols.str.endswith("numcat")
-        ].tolist()
-        self.nominal_cols = cols[cols.str.endswith("nom")].tolist()
-        self.ordinal_cols = cols[
-            cols.str.endswith("ord") | cols.str.endswith("bin")
-        ].tolist()
+        (
+            numeric_cols,
+            numericcat_cols,
+            cat_cols,
+            binary_cols,
+            nominal_cols,
+            ordinal_cols,
+            target_col,
+        ) = myfuncs.get_different_types_cols_from_df_4(X)
+
+        self.numeric_cols = numeric_cols + numericcat_cols
+        self.nominal_cols = nominal_cols
+        self.ordinal_cols = ordinal_cols + binary_cols
 
     def create_preprocessor_for_train_data(self):
         before_feature_pipeline = Pipeline(

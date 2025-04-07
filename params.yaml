@@ -9,7 +9,7 @@ data_correction:
 
 # DATA TRANSFORMATION
 data_transformation: 
-      number: "1" # id của data_transformation
+      number: "1_1" # id của data_transformation
       do_smote: f # t: true, f: false
       list_before_feature_transformer: 
             - ColumnsDeleter(columns = ['State_nom'; 'Sex_nom'])
@@ -20,7 +20,7 @@ data_transformation:
 model_trainer: 
       model_name: XGB_12
       target_score: 0.8
-      model_training_type: rcv  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
+      model_training_type: r  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
       # Cần cho model_training_type = rcv, gcv, r, g
       base_model: XGBClassifier(random_state=42)
       n_iter: 5 # số tổ hợp chọn khi chạy random search
