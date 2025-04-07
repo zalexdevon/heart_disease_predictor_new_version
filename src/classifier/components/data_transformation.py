@@ -22,8 +22,15 @@ from imblearn.over_sampling import SMOTE
 
 
 class CustomOrdinalEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self) -> None:
+    """Mã hóa các cột ordinal thành số
+
+    Args:
+        min_value (_type_): Giá trị nhỏ nhất khi mã hóa. Defaults to 0
+    """
+
+    def __init__(self, min_value=0) -> None:
         super().__init__()
+        self.min_value = min_value
 
     def fit(self, X, y=None):
 
@@ -31,7 +38,7 @@ class CustomOrdinalEncoder(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         for col in X.columns:
-            X[col] = X[col].cat.codes + 1  # nhỏ nhất = 1 (0 thì xét làm gì nữa)
+            X[col] = X[col].cat.codes + self.min_value
 
         self.cols = X.columns.tolist()
         return X
@@ -76,7 +83,7 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
 
         ordinal_pipeline = Pipeline(
             steps=[
-                ("1", CustomOrdinalEncoder()),
+                ("1", CustomOrdinalEncoder(min_value=1)),
                 ("2", StandardScaler()),
             ]
         )
