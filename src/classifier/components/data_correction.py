@@ -51,11 +51,11 @@ class ColNamesPreprocessor(BaseEstimator, TransformerMixin):
             "State": "State_nom",
             "Sex": "Sex_nom",
             "GeneralHealth": "GeneralHealth_ord",
-            "PhysicalHealthDays": "PhysicalHealthDays_num",
-            "MentalHealthDays": "MentalHealthDays_num",
+            "PhysicalHealthDays": "PhysicalHealthDays_numcat",
+            "MentalHealthDays": "MentalHealthDays_numcat",
             "LastCheckupTime": "LastCheckupTime_ord",
             "PhysicalActivities": "PhysicalActivities_bin",
-            "SleepHours": "SleepHours_num",
+            "SleepHours": "SleepHours_numcat",
             "RemovedTeeth": "RemovedTeeth_nom",
             "HadAngina": "HadAngina_bin",
             "HadStroke": "HadStroke_bin",
@@ -81,6 +81,7 @@ class ColNamesPreprocessor(BaseEstimator, TransformerMixin):
             "FluVaxLast12": "FluVaxLast12_bin",
             "PneumoVaxEver": "PneumoVaxEver_bin",
             "TetanusLast10Tdap": "TetanusLast10Tdap_nom",
+            "TetanusLast10Tdap": "TetanusLast10Tdap_nom",
             "HadHeartAttack": "HadHeartAttack_target",
         }
 
@@ -90,7 +91,7 @@ class ColNamesPreprocessor(BaseEstimator, TransformerMixin):
         (
             numeric_cols,
             numericCat_cols,
-            _,
+            cat_cols,
             binary_cols,
             nominal_cols,
             ordinal_cols,
@@ -134,11 +135,6 @@ class NumericColDataPreprocessor(
     def transform(self, X, y=None):
         df = X
 
-        # Cột SleepHours_num
-        replaced_value = list(range(13, 24 + 1))
-        replaced_dict = dict(zip(replaced_value, [np.nan] * len(replaced_value)))
-        df["SleepHours_num"] = df["SleepHours_num"].replace(replaced_dict)
-
         # Cột HeightInMeters_num
         col_name = "HeightInMeters_num"
         df[col_name] = df[col_name].apply(lambda x: np.nan if x > 2.01 else x)
@@ -160,6 +156,12 @@ class NumericCatColDataPreprocessor(
 
     def transform(self, X, y=None):
         df = X
+
+        # UPDATE Cột SleepHours_num
+        col_name = "SleepHours_numcat"
+        replaced_value = list(range(13, 24 + 1))
+        replaced_dict = dict(zip(replaced_value, [np.nan] * len(replaced_value)))
+        df[col_name] = df[col_name].replace(replaced_dict)
 
         return df
 
@@ -232,7 +234,7 @@ class HandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
                 ("num", SimpleImputer(strategy="mean"), numeric_cols),
                 ("numCat", SimpleImputer(strategy="most_frequent"), numericCat_cols),
                 ("cat", SimpleImputer(strategy="most_frequent"), cat_cols),
-                ("target", SimpleImputer(strategy="mean"), [target_col]),
+                ("target", SimpleImputer(strategy="most_frequent"), [target_col]),
             ]
         )
 
@@ -259,9 +261,6 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
         super().__init__()
         self.target_col = target_col
 
-    def fit(self, X, y=None):
-        return self
-
     def transform(self, X, y=None):
         df = X
 
@@ -277,13 +276,11 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
         )
 
         # Thay doi thu tu cac label cho cac cot ordinal, binary va target
-        ## Binary cols
         bin_values_dict = dict(zip(binary_cols, [["No", "Yes"]] * len(binary_cols)))
 
         for col, value in bin_values_dict.items():
             df[col] = df[col].cat.reorder_categories(value, ordered=True)
 
-        ## Ordinal cols
         ord_values_dict = {
             "GeneralHealth_ord": ["Poor", "Fair", "Good", "Very good", "Excellent"],
             "LastCheckupTime_ord": [
@@ -309,19 +306,14 @@ class AfterHandleMissingValuePreprocessor(BaseEstimator, TransformerMixin):
         for col, value in ord_values_dict.items():
             df[col] = df[col].cat.reorder_categories(value, ordered=True)
 
-        ## Target col
         df[self.target_col] = df[self.target_col].cat.reorder_categories(
             ["No", "Yes"], ordered=True
         )
 
         # Loại bỏ duplicates
-        df = df.drop_duplicates().reset_index(drop=True)
+        df = df.drop_duplicates()
 
         return df
-
-    def fit_transform(self, X, y=None):
-        self.fit(X)
-        return self.transform(X)
 
 
 class DataCorrection:
@@ -351,7 +343,9 @@ class DataCorrection:
         )
 
     def transform_data(self):
-        df_transformed = self.preprocessor.fit_transform(self.train_raw_data)
+        df_transformed = self.preprocessor.fit_transform(
+            self.train_raw_data
+        ).reset_index(drop=True)
 
         # Chia thành tập train, val
         df_train, df_val = train_test_split(
