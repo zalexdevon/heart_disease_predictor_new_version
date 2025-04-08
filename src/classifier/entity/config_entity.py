@@ -71,7 +71,6 @@ class ModelTrainerConfig:
     # common params
     scoring: str
     target_score: float
-    predictor_type: str
 
 
 # TEST DATA CORRECTION
@@ -102,7 +101,6 @@ class ModelEvaluationConfig:
     # common params
     target_col: str
     scoring: str
-    predictor_type: str
 
 
 @dataclass(frozen=True)

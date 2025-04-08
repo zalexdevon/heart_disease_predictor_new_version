@@ -22,6 +22,7 @@ from sklearn.model_selection import ParameterSampler
 from sklearn import metrics
 from sklearn.base import clone
 import time
+from classifier.Mylib import myclasses
 
 
 class ModelTrainer:
@@ -114,24 +115,23 @@ class ModelTrainer:
         self.class_names = myfuncs.load_python_object(self.config.class_names_path)
 
     def train_model(self):
+        print(f"\n========TIEN HANH TRAIN MODELS !!!!!!================\n")
+
         self.searcher.fit(self.features, self.target)
 
-    def find_model_scoring(self):
-        cv_results = zip(
-            self.cv_results["mean_test_score"], self.cv_results["mean_train_score"]
-        )
-        cv_results = sorted(cv_results, key=lambda x: x[0], reverse=True)
-        self.val_scoring, self.train_scoring = cv_results[0]
-
-        if self.config.scoring == "log_loss":
-            self.val_scoring, self.train_scoring = (
-                -self.val_scoring,
-                -self.train_scoring,
-            )
+        print(f"\n========KET THUC TRAIN MODELS !!!!!!================\n")
 
     def save_best_model_results(self):
+        # Tìm model tốt nhất và chỉ số đánh giá tương ứng
         self.best_model = self.searcher.best_estimator_
+
         self.cv_results = self.searcher.cv_results_
+
+        self.train_scoring, self.val_scoring = (
+            myfuncs.find_best_model_train_val_scoring_when_using_RandomisedSearch_GridSearch(
+                self.cv_results, self.config.scoring
+            )
+        )
 
         # Các chỉ số đánh giá của model
         self.best_model_results_text = (
@@ -139,7 +139,6 @@ class ModelTrainer:
         )
 
         ## Chỉ số scoring
-        self.find_model_scoring()
         self.best_model_results_text += f"====CHỈ SỐ SCORING====\n"
         self.best_model_results_text += (
             f"Train {self.config.scoring}: {self.train_scoring}\n"
@@ -150,20 +149,14 @@ class ModelTrainer:
 
         # Các chỉ số khác bao gồm accuracy + classfication report
         self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
-
-        evaluate_func = (
-            myfuncs.evaluate_classifier_15
-            if self.config.predictor_type == "c"
-            else myfuncs.evaluate_regressor_16
-        )
-        self.best_model_results_text += evaluate_func(
-            self.best_model,
-            self.train_feature_data,
-            self.train_target_data,
-            self.val_feature_data,
-            self.val_target_data,
-            self.class_names,
-        )
+        self.best_model_results_text += myclasses.ModelEvaluator(
+            model=self.best_model,
+            train_feature_data=self.train_feature_data,
+            train_target_data=self.train_target_data,
+            val_feature_data=self.val_feature_data,
+            val_target_data=self.val_target_data,
+            class_names=self.class_names,
+        ).evaluate()
 
         # In ra kết quả đánh giá
         print(self.best_model_results_text)
@@ -194,7 +187,6 @@ class ModelTrainer:
                 self.config.model_name,
                 self.train_scoring,
                 self.val_scoring,
-                self.best_model_results_text,
             )
         ]
 

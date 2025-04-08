@@ -75,6 +75,10 @@ from typing import Union
 from sklearn import metrics
 
 
+SCORINGS_PREFER_MININUM = ["log_loss", "mse", "mae"]
+SCORINGS_PREFER_MAXIMUM = ["accuracy"]
+
+
 def get_sum(a, b):
     """Demo function for the library"""
     return a + b
@@ -973,6 +977,8 @@ def do_ast_literal_eval_advanced_7(text: str):
 def do_list_subtraction_3(a: list, b: list):
     """Thực hiện trừ a cho b
 
+    Ở đây hay hơn dùng phép trừ trong set, vì hàm này giúp bảo tồn vị trí các phần tử trong list **a** sau khi trừ
+
     ```python
     a = ['z', 'a', 'b', 'c']
     b = ['b']
@@ -1373,8 +1379,10 @@ def convert_pdDataframe_to_tfDataset_13(
 
 
 @ensure_annotations
-def get_different_types_cols_from_df_14(df: pd.DataFrame):
+def get_different_types_feature_cols_from_df_14(df: pd.DataFrame):
     """Tìm các cột kiểu numeric, numericCat, cat, binary, nominal, ordinal từ df
+
+    Lưu ý: Chỉ các cột **feature** không có cột **target**
     Returns:
         (numeric_cols, numericCat_cols, cat_cols, binary_cols, nominal_cols, ordinal_cols):
     """
@@ -1396,111 +1404,29 @@ def get_different_types_cols_from_df_14(df: pd.DataFrame):
     )
 
 
-def evaluate_classifier_15(
-    model,
-    train_feature_data,
-    train_target_data,
-    val_feature_data,
-    val_target_data,
-    class_names,
-):
-    """Đánh giá chung cho 1 classifier
-
-    Định dạng của kết quả:
-
-        Train accuracy:
-
-        Val accuracy:
-
-        Train classification_report:
-
-        Val classification_report:
-
-    """
-    train_accuracy = evaluate_model_on_one_scoring_17(
-        model, train_feature_data, train_target_data, "accuracy"
-    )
-    val_accuracy = evaluate_model_on_one_scoring_17(
-        model, val_feature_data, val_target_data, "accuracy"
-    )
-
-    train_classification_report = get_classification_report_18(
-        model, train_feature_data, train_target_data, class_names
-    )
-    val_classification_report = get_classification_report_18(
-        model, val_feature_data, val_target_data, class_names
-    )
-
-    model_results_text = f"Train accuracy: {train_accuracy}\n"
-    model_results_text += f"Val accuracy: {val_accuracy}\n"
-    model_results_text += (
-        f"Train classification_report: \n{train_classification_report}\n"
-    )
-    model_results_text += f"Val classification_report: \n{val_classification_report}"
-
-    return model_results_text
-
-
-def evaluate_regressor_16(
-    model,
-    train_feature_data,
-    train_target_data,
-    val_feature_data,
-    val_target_data,
-    class_names=None,
-):
-    """Đánh giá chung cho 1 regressor
-
-    Định dạng của kết quả:
-
-        Train RMSE:
-
-        Val RMSE:
-
-        Train MAE:
-
-        Val MAE:
-
-    """
-    train_prediction = model.predict(train_feature_data)
-    val_prediction = model.predict(val_feature_data)
-    train_rmse = np.sqrt(
-        metrics.mean_squared_error(train_target_data, train_prediction)
-    )
-    val_rmse = np.sqrt(metrics.mean_squared_error(val_target_data, val_prediction))
-    train_mae = np.sqrt(
-        metrics.mean_absolute_error(train_target_data, train_prediction)
-    )
-    val_mae = np.sqrt(metrics.mean_absolute_error(val_target_data, val_prediction))
-
-    model_results_text = f"Train RMSE: {train_rmse}\n"
-    model_results_text += f"Val RMSE: {val_rmse}\n"
-    model_results_text = f"Train MAE: {train_mae}\n"
-    model_results_text += f"Val MAE: {val_mae}\n"
-
-    return model_results_text
-
-
 def evaluate_model_on_one_scoring_17(model, feature, target, scoring):
     if scoring == "accuracy":
         prediction = model.predict(feature)
         return metrics.accuracy_score(target, prediction)
-    elif scoring == "log_loss":
+
+    if scoring == "log_loss":
         prediction = model.predict_proba(feature)
         return metrics.log_loss(target, prediction)
-    elif scoring == "mse":
+
+    if scoring == "mse":
         prediction = model.predict(feature)
         return np.sqrt(metrics.mean_squared_error(target, prediction))
-    elif scoring == "mae":
+
+    if scoring == "mae":
         prediction = model.predict(feature)
         return metrics.mean_absolute_error(target, prediction)
-    else:
-        raise ValueError(
-            "===== Chỉ mới định nghĩa cho accuracy, log_loss, mse, mae =============="
-        )
+
+    raise ValueError(
+        "===== Chỉ mới định nghĩa cho accuracy, log_loss, mse, mae =============="
+    )
 
 
-def get_classification_report_18(model, feature, target, class_names):
+def get_classification_report_18(model, feature, target, class_names: list):
     """Tạo classfication report cho classifier"""
     class_names = np.asarray(class_names)
 
@@ -1510,52 +1436,30 @@ def get_classification_report_18(model, feature, target, class_names):
     prediction = model.predict(feature)
     prediction = [int(item) for item in prediction]
     prediction = class_names[prediction]
+
     return metrics.classification_report(target, prediction)
 
 
-def evaluate_classifier_on_test_data_18(model, feature_data, target_data, class_names):
-    """Đánh giá chung cho 1 classifier
-
-    Định dạng của kết quả:
-
-        Accuracy:
-
-        Classification_report:
-
-    """
-    train_accuracy = evaluate_model_on_one_scoring_17(
-        model, feature_data, target_data, "accuracy"
-    )
-
-    train_classification_report = get_classification_report_18(
-        model, feature_data, target_data, class_names
-    )
-
-    model_results_text = f"Accuracy: {train_accuracy}"
-    model_results_text += f"Classification_report: \n{train_classification_report}\n"
-
-    return model_results_text
-
-
-def evaluate_regressor_on_test_data_18(
-    model, feature_data, target_data, class_names=None
+def find_best_model_train_val_scoring_when_using_RandomisedSearch_GridSearch(
+    cv_results, scoring
 ):
-    """Đánh giá chung cho 1 regressor
+    """Tìm chỉ số train-val cho mô hình tốt nhất sau khi sử dụng RandomisedSearch hoặc GridSearch
 
-    Định dạng của kết quả:
-        RMSE:
+    Args:
+        cv_results (_type_): Kết quả từ searcher
+        scoring (_type_): Chỉ tiêu đánh giá
 
-        MAE:
-
+    Returns:
+        (train_scoring, val_scoring):
     """
-    train_rmse = evaluate_model_on_one_scoring_17(
-        model, feature_data, target_data, "mse"
-    )
-    train_mae = evaluate_model_on_one_scoring_17(
-        model, feature_data, target_data, "mae"
-    )
+    cv_results = zip(cv_results["mean_test_score"], cv_results["mean_train_score"])
+    cv_results = sorted(cv_results, key=lambda x: x[0], reverse=True)
+    val_scoring, train_scoring = cv_results[0]
 
-    model_results_text = f"RMSE: {train_rmse}"
-    model_results_text = f"MAE: {train_mae}"
+    if scoring in SCORINGS_PREFER_MININUM:
+        val_scoring, train_scoring = (
+            -val_scoring,
+            -train_scoring,
+        )
 
-    return model_results_text
+    return train_scoring, val_scoring

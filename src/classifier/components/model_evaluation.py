@@ -4,6 +4,7 @@ from classifier import logger
 from classifier.entity.config_entity import ModelEvaluationConfig
 from classifier.Mylib import myfuncs
 from sklearn import metrics
+from classifier.Mylib import myclasses
 
 
 class ModelEvaluation:
@@ -34,15 +35,12 @@ class ModelEvaluation:
 
         # Các chỉ số khác
         self.model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
-
-        evaluate_func = (
-            myfuncs.evaluate_classifier_on_test_data_18
-            if self.config.predictor_type == "c"
-            else myfuncs.evaluate_regressor_on_test_data_18
-        )
-        self.model_results_text += evaluate_func(
-            self.model, self.df_feature, self.df_target, self.class_names
-        )
+        self.best_model_results_text += myclasses.ModelEvaluator(
+            model=self.model,
+            train_feature_data=self.df_feature,
+            train_target_data=self.df_target,
+            class_names=self.class_names,
+        ).evaluate()
 
         # In ra kết quả đánh giá
         print(self.model_results_text)

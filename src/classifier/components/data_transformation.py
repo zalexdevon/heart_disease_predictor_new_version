@@ -56,10 +56,6 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
         super().__init__()
 
     def fit(self, X, y=None):
-        # TODO: d
-        print("===========Các cột khi vào DuringFeatureTransformer ===========\n")
-        print(X.columns.tolist())
-        # d
 
         # Lấy các cột numeric, nominal, ordinal
         (
@@ -69,7 +65,7 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
             binary_cols,
             nominal_cols,
             ordinal_cols,
-        ) = myfuncs.get_different_types_cols_from_df_14(X)
+        ) = myfuncs.get_different_types_feature_cols_from_df_14(X)
 
         numeric_cols = numeric_cols + numericcat_cols
         ordinal_cols = ordinal_cols + binary_cols
@@ -104,11 +100,6 @@ class DuringFeatureTransformer(BaseEstimator, TransformerMixin):
         self.cols = myfuncs.get_real_column_name_from_get_feature_names_out(
             self.column_transformer.get_feature_names_out()
         )
-
-        # TODO: d
-        print("===========Các cột trong DuringFeatureTransformer============\n")
-        print(self.cols)
-        # d
 
         return pd.DataFrame(X, columns=self.cols)
 

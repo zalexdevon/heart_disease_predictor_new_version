@@ -22,6 +22,7 @@ from sklearn.model_selection import ParameterSampler
 from sklearn import metrics
 from sklearn.base import clone
 import time
+from classifier.Mylib import myclasses
 
 
 class ManyModelsTypeModelTrainer:
@@ -75,10 +76,6 @@ class ManyModelsTypeModelTrainer:
                 f"Model no. {index} -> Train {self.config.scoring}: {train_scoring}, Val {self.config.scoring}: {val_scoring}\n"
             )
 
-            # TODO: d
-            print(f"C = {model.C}")
-            # d
-
             self.train_scorings.append(train_scoring)
             self.val_scorings.append(val_scoring)
 
@@ -86,56 +83,16 @@ class ManyModelsTypeModelTrainer:
             f"\n========KET THUC TRAIN {self.num_models} MODELS !!!!!!================\n"
         )
 
-    def find_train_val_scorings_to_find_the_best(self):
-        sign_for_score = 1  # Nếu scoring cần min thì lấy âm -> quy về tìm lớn nhất thôi
-        if self.config.scoring in ["log_loss", "mse", "mae"]:
-            self.config.target_score = -self.config.target_score
-            sign_for_score = -1
-
-        self.train_scorings_to_find_the_best = np.asarray(
-            [item * sign_for_score for item in self.train_scorings]
-        )
-        self.val_scorings_to_find_the_best = np.asarray(
-            [item * sign_for_score for item in self.val_scorings]
-        )
-
-    def find_best_model_and_scoring(self):
-        """TÌm model tốt nhất và scoring tương ứng
-
-        Examples:
-            Với **monitor = val_accuracy và indicator = 0.99**
-
-            Tìm model thỏa val_accuracy > 0.99 và train_accuracy > 0.99 (1) và val_accuracy là lớn nhất trong số đó
-
-            Nếu không thỏa (1) thì lấy theo val_accuracy lớn nhất
-        """
-
-        # Tìm index của best model
-        indexs_good_model = np.where(
-            (self.val_scorings_to_find_the_best > self.config.target_score)
-            & (self.train_scorings_to_find_the_best > self.config.target_score)
-        )[0]
-
-        index_best_model = None
-        if (
-            len(indexs_good_model) == 0
-        ):  # Nếu ko có model nào đạt chỉ tiêu thì lấy cái tốt nhất
-            index_best_model = np.argmax(self.val_scorings_to_find_the_best)
-        else:
-            val_series = pd.Series(
-                self.val_scorings_to_find_the_best[indexs_good_model],
-                index=indexs_good_model,
-            )
-            index_best_model = val_series.idxmax()
-
-        self.best_model = self.models[index_best_model]
-        self.train_scoring = self.train_scorings[index_best_model]
-        self.val_scoring = self.val_scorings[index_best_model]
-
     def save_best_model_results(self):
-        # Tìm model tốt nhất và chỉ số scoring
-        self.find_train_val_scorings_to_find_the_best()
-        self.find_best_model_and_scoring()
+        # Tìm model tốt nhất và chỉ số train, val scoring tương ứng
+        self.best_model, self.train_scoring, self.val_scoring = (
+            myclasses.BestModelSearcher(
+                self.models,
+                self.train_scorings,
+                self.val_scorings,
+                self.config.target_score,
+            ).next()
+        )
 
         # Các chỉ số đánh giá của model
         self.best_model_results_text = (
@@ -151,22 +108,17 @@ class ManyModelsTypeModelTrainer:
             f"Val {self.config.scoring}: {self.val_scoring}\n"
         )
 
-        # Các chỉ số khác bao gồm accuracy + classfication report
+        # Các chỉ số khác
         self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
 
-        evaluate_func = (
-            myfuncs.evaluate_classifier_15
-            if self.config.predictor_type == "c"
-            else myfuncs.evaluate_regressor_16
-        )
-        self.best_model_results_text += evaluate_func(
-            self.best_model,
-            self.train_feature_data,
-            self.train_target_data,
-            self.val_feature_data,
-            self.val_target_data,
-            self.class_names,
-        )
+        self.best_model_results_text += myclasses.ModelEvaluator(
+            model=self.best_model,
+            train_feature_data=self.train_feature_data,
+            train_target_data=self.train_target_data,
+            val_feature_data=self.val_feature_data,
+            val_target_data=self.val_target_data,
+            class_names=self.class_names,
+        ).evaluate()
 
         # In ra kết quả đánh giá
         print(self.best_model_results_text)
@@ -189,7 +141,7 @@ class ManyModelsTypeModelTrainer:
                 self.config.list_monitor_components_path
             )
 
-        else:
+        else:  # Tức đây là lần đầu training
             self.list_monitor_components = []
 
         self.list_monitor_components += [
@@ -197,7 +149,6 @@ class ManyModelsTypeModelTrainer:
                 self.config.model_name,
                 self.train_scoring,
                 self.val_scoring,
-                self.best_model_results_text,
             )
         ]
 
