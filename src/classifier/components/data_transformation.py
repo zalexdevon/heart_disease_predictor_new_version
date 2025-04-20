@@ -1,24 +1,16 @@
-import os
 from classifier import logger
 import pandas as pd
 from classifier.entity.config_entity import DataTransformationConfig
 from classifier.Mylib import myfuncs
 from sklearn.preprocessing import (
     OneHotEncoder,
-    OrdinalEncoder,
     StandardScaler,
-    LabelEncoder,
-    PolynomialFeatures,
 )
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
-import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import FunctionTransformer
-from sklearn.neighbors import KNeighborsTransformer, NearestNeighbors
 from imblearn.over_sampling import SMOTE
+from classifier.Mylib import stringToObjectConverter
 
 
 class CustomOrdinalEncoder(BaseEstimator, TransformerMixin):
@@ -142,18 +134,19 @@ class DataTransformation:
         self.df_train = myfuncs.load_python_object(self.config.train_data_path)
         self.df_val = myfuncs.load_python_object(self.config.val_data_path)
         self.num_train_sample = len(self.df_train)
-        self.feature_cols = myfuncs.do_list_subtraction_3(
-            self.df_train.columns.tolist(), [self.config.target_col]
+
+        self.feature_cols, self.target_col = (
+            myfuncs.get_feature_cols_and_target_col_from_df_27(self.df_train)
         )
 
         # Load các transfomers
         self.list_before_feature_transformer = [
-            myfuncs.convert_string_to_object_4(transformer)
+            stringToObjectConverter.convert_string_to_object_4(transformer)
             for transformer in self.config.list_before_feature_transformer
         ]
 
         self.list_after_feature_transformer = [
-            myfuncs.convert_string_to_object_4(transformer)
+            stringToObjectConverter.convert_string_to_object_4(transformer)
             for transformer in self.config.list_after_feature_transformer
         ]
 
@@ -191,7 +184,7 @@ class DataTransformation:
         column_transformer = ColumnTransformer(
             transformers=[
                 ("feature", feature_pipeline, self.feature_cols),
-                ("target", target_pipeline, [self.config.target_col]),
+                ("target", target_pipeline, [self.target_col]),
             ]
         )
 
@@ -201,8 +194,8 @@ class DataTransformation:
         df_train_transformed = self.preprocessor.fit_transform(self.df_train)
         df_val_transformed = self.preprocessor.transform(self.df_val)
 
-        df_train_feature = df_train_transformed.drop(columns=[self.config.target_col])
-        df_train_target = df_train_transformed[self.config.target_col]
+        df_train_feature = df_train_transformed.drop(columns=[self.target_col])
+        df_train_target = df_train_transformed[self.target_col]
 
         if self.config.do_smote == "t":
             smote = SMOTE(sampling_strategy="auto", random_state=42)
@@ -210,8 +203,8 @@ class DataTransformation:
                 df_train_feature, df_train_target
             )
 
-        df_val_feature = df_val_transformed.drop(columns=[self.config.target_col])
-        df_val_target = df_val_transformed[self.config.target_col]
+        df_val_feature = df_val_transformed.drop(columns=[self.target_col])
+        df_val_target = df_val_transformed[self.target_col]
 
         myfuncs.save_python_object(self.config.preprocessor_path, self.preprocessor)
         myfuncs.save_python_object(self.config.train_features_path, df_train_feature)

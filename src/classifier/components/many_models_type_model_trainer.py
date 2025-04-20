@@ -7,11 +7,6 @@ from classifier.entity.config_entity import ModelTrainerConfig
 from classifier.Mylib import myfuncs
 from sklearn.svm import SVC, LinearSVC
 from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    AdaBoostClassifier,
-    GradientBoostingClassifier,
-)
 from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 from xgboost import XGBClassifier
@@ -23,6 +18,7 @@ from sklearn import metrics
 from sklearn.base import clone
 import time
 from classifier.Mylib import myclasses
+from classifier.Mylib import stringToObjectConverter
 
 
 class ManyModelsTypeModelTrainer:
@@ -42,7 +38,8 @@ class ManyModelsTypeModelTrainer:
 
         # Load models
         self.models = [
-            myfuncs.convert_string_to_object_4(model) for model in self.config.models
+            stringToObjectConverter.convert_string_to_object_4(model)
+            for model in self.config.models
         ]
 
         self.num_models = len(self.models)
@@ -56,6 +53,7 @@ class ManyModelsTypeModelTrainer:
         )
         self.train_scorings = []
         self.val_scorings = []
+
         for index, model in enumerate(self.models):
             model.fit(self.train_feature_data, self.train_target_data)
             train_scoring = myfuncs.evaluate_model_on_one_scoring_17(
@@ -73,7 +71,7 @@ class ManyModelsTypeModelTrainer:
 
             # In kết quả
             print(
-                f"Model no. {index} -> Train {self.config.scoring}: {train_scoring}, Val {self.config.scoring}: {val_scoring}\n"
+                f"Model {index} -> Train {self.config.scoring}: {train_scoring}, Val {self.config.scoring}: {val_scoring}\n"
             )
 
             self.train_scorings.append(train_scoring)
@@ -108,20 +106,32 @@ class ManyModelsTypeModelTrainer:
             f"Val {self.config.scoring}: {self.val_scoring}\n"
         )
 
-        # Các chỉ số khác
+        # Các chỉ số khác bao gồm accuracy + classfication report + confusion matrix
         self.best_model_results_text += "====CÁC CHỈ SỐ KHÁC===========\n"
+        best_model_results_text, train_confusion_matrix, val_confusion_matrix = (
+            myclasses.ClassifierEvaluator(
+                model=self.best_model,
+                train_feature_data=self.train_feature_data,
+                train_target_data=self.train_target_data,
+                val_feature_data=self.val_feature_data,
+                val_target_data=self.val_target_data,
+                class_names=self.class_names,
+            ).evaluate()
+        )
+        self.best_model_results_text += best_model_results_text
 
-        self.best_model_results_text += myclasses.ModelEvaluator(
-            model=self.best_model,
-            train_feature_data=self.train_feature_data,
-            train_target_data=self.train_target_data,
-            val_feature_data=self.val_feature_data,
-            val_target_data=self.val_target_data,
-            class_names=self.class_names,
-        ).evaluate()
-
-        # In ra kết quả đánh giá
-        print(self.best_model_results_text)
+        train_confusion_matrix_path = os.path.join(
+            self.config.root_dir, "train_confusion_matrix.png"
+        )
+        train_confusion_matrix.savefig(
+            train_confusion_matrix_path, dpi=None, bbox_inches="tight", format=None
+        )
+        val_confusion_matrix_path = os.path.join(
+            self.config.root_dir, "val_confusion_matrix.png"
+        )
+        val_confusion_matrix.savefig(
+            val_confusion_matrix_path, dpi=None, bbox_inches="tight", format=None
+        )
 
         # Lưu chỉ số đánh giá vào file results.txt
         with open(self.config.results_path, mode="w") as file:
@@ -131,10 +141,9 @@ class ManyModelsTypeModelTrainer:
         myfuncs.save_python_object(self.config.best_model_path, self.best_model)
 
     def save_list_monitor_components(self):
-        # Chuyển đổi train, val scoring để hiển thị lên biểu đồ
-        if self.config.scoring == "accuracy":
-            self.train_scoring = self.train_scoring * 100
-            self.val_scoring = self.val_scoring * 100
+        self.train_scoring, self.val_scoring = myfuncs.get_value_with_the_meaning_28(
+            (self.train_scoring, self.val_scoring), self.config.scoring
+        )
 
         if os.path.exists(self.config.list_monitor_components_path):
             self.list_monitor_components = myfuncs.load_python_object(

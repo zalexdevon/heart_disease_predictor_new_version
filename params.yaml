@@ -1,6 +1,4 @@
 # COMMON
-predictor_type: c # c: classifier, r: regressor
-target_col: "HadHeartAttack_target"
 scoring: accuracy
 target_score: 0.8
 
@@ -21,6 +19,7 @@ data_transformation:
 model_trainer: 
       model_name: XGB_25
       model_training_type: m  # rcv: randomisedcv, gcv: gridcv, r: randomisedTrainVal, g: gridTrainVal, m: many models
+
       # Cần cho model_training_type = rcv, gcv, r, g
       base_model: XGBClassifier(random_state=42)
       n_iter: 1 # số tổ hợp chọn khi chạy random search
@@ -32,6 +31,7 @@ model_trainer:
             learning_rate: 10
             subsample: 0.9-1
             colsample_bytree: 0.9-1
+
       # Càn cho model_training_type = m
       models: 
             - LogisticRegression(C = 0.1, random_state=42)
@@ -48,6 +48,6 @@ model_evaluation:
 monitor_plotter:
       monitor_plot_html_path: "artifacts/model_trainer/monitor_plot.html"
       monitor_plot_fig_path: "artifacts/model_trainer/monitor_plot_fig.pkl"
-      target_val_value: 97
+      target_val_value: 80
       max_val_value: 100
       dtick_y_value: 5

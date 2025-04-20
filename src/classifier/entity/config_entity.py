@@ -17,10 +17,6 @@ class DataCorrectionConfig:
     # params
     val_size: float
 
-    # common params
-    target_col: str
-    predictor_type: str
-
 
 @dataclass(frozen=True)
 class DataTransformationConfig:
@@ -41,9 +37,6 @@ class DataTransformationConfig:
     list_before_feature_transformer: list
     list_after_feature_transformer: list
 
-    # common params
-    target_col: str
-
 
 @dataclass(frozen=True)
 class ModelTrainerConfig:
@@ -63,9 +56,13 @@ class ModelTrainerConfig:
     # params
     model_name: str
     model_training_type: str
+
+    # params to use GridSearch
     base_model: str
     n_iter: int
     param_grid: dict
+
+    # params to train many models
     models: list
 
     # common params
@@ -99,7 +96,6 @@ class ModelEvaluationConfig:
     results_path: Path
 
     # common params
-    target_col: str
     scoring: str
 
 

@@ -23,15 +23,14 @@ class MonitorPlotter:
             if val_scores[i] > self.config.max_val_value:
                 val_scores[i] = self.config.max_val_value
 
-        x_values = list(range(1, len(train_scores) + 1))
-
         df = pd.DataFrame(
             {
-                "x": x_values,
+                "x": model_names,
                 "train": train_scores,
                 "val": val_scores,
             }
         )
+
         df_long = df.melt(
             id_vars=["x"],
             value_vars=["train", "val"],
@@ -52,22 +51,6 @@ class MonitorPlotter:
             hover_data={"x": False, "y": True, "Category": False},
         )
 
-        for i in range(len(x_values)):
-            text = model_names[i]
-
-            fig.add_annotation(
-                text=text,
-                x=x_values[i],
-                y=self.config.max_val_value,
-                xref="x",
-                yref="y",
-                showarrow=False,
-                font=dict(family="Consolas", size=7, color="red"),
-                ax=0,
-                align="left",
-                yanchor="bottom",
-            )
-
         fig.add_hline(
             y=self.config.max_val_value,
             line_dash="solid",
@@ -84,14 +67,14 @@ class MonitorPlotter:
 
         fig.update_layout(
             autosize=False,
-            width=100 * (len(x_values) + 2) + 30,
+            width=100 * (len(model_names) + 2) + 30,
             height=600,
             margin=dict(l=30, r=10, t=10, b=0),
             xaxis=dict(
                 title="",
                 range=[
                     0,
-                    len(x_values) + 2,
+                    len(model_names) + 2,
                 ],
                 tickmode="linear",
             ),

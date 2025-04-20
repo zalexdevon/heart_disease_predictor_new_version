@@ -1,25 +1,4 @@
-from datetime import datetime, timedelta
-from zipfile import ZipFile
-import shutil
-import urllib.request
-import pickle
-import numbers
-import itertools
-import re
-import math
-from box.exceptions import BoxValueError
-import yaml
-import json
-import joblib
-from ensure import ensure_annotations
-from box import ConfigBox
-from pathlib import Path
-from typing import Any
-import base64
-import pickle
-import plotly.express as px
 import pandas as pd
-import os
 import numpy as np
 import tensorflow as tf
 import tensorflow as tf
@@ -807,40 +786,40 @@ class ColumnsDeleter(BaseEstimator, TransformerMixin):
         return self.cols
 
 
-class ModelEvaluator:
-    """Đánh giá model cho tập train-val hoặc tập test, tích hợp cả classifier và regressor
+class ClassifierEvaluator:
+    """Đánh giá model cho tập train-val hoặc tập test cho bài toán classification
 
     Hàm chính:
     - evaluate():
 
     Lưu ý:
-    - Khi đánh giá regressor thì truyền class_names = None
     - KHi đánh giá 1 tập (vd: đánh giá tập test) thì truyền cho train_feature_data, train_target_data, còn val_feature_data và val_target_data **bỏ trống**
 
     Attributes:
         model (_type_):
+        class_names (_type_): Các label
         train_feature_data (_type_):
         train_target_data (_type_):
         val_feature_data (_type_, optional): Defaults to None.
         val_target_data (_type_, optional):  Defaults to None.
-        class_names (_type_, optional):  Defaults to None.
+
     """
 
     def __init__(
         self,
         model,
+        class_names,
         train_feature_data,
         train_target_data,
         val_feature_data=None,
         val_target_data=None,
-        class_names=None,
     ):
         self.model = model
+        self.class_names = class_names
         self.train_feature_data = train_feature_data
         self.train_target_data = train_target_data
         self.val_feature_data = val_feature_data
         self.val_target_data = val_target_data
-        self.class_names = class_names
 
     def evaluate_train_classifier(self):
         train_accuracy = myfuncs.evaluate_model_on_one_scoring_17(
@@ -860,6 +839,13 @@ class ModelEvaluator:
             self.model, self.val_feature_data, self.val_target_data, self.class_names
         )
 
+        train_confusion_matrix = myfuncs.get_confusion_matrix_heatmap_29(
+            self.model, self.train_feature_data, self.train_target_data
+        )
+        val_confusion_matrix = myfuncs.get_confusion_matrix_heatmap_29(
+            self.model, self.val_feature_data, self.val_target_data
+        )
+
         model_results_text = f"Train accuracy: {train_accuracy}\n"
         model_results_text += f"Val accuracy: {val_accuracy}\n"
         model_results_text += (
@@ -869,7 +855,70 @@ class ModelEvaluator:
             f"Val classification_report: \n{val_classification_report}"
         )
 
-        return model_results_text
+        return model_results_text, train_confusion_matrix, val_confusion_matrix
+
+    def evaluate_test_classifier(self):
+        test_accuracy = myfuncs.evaluate_model_on_one_scoring_17(
+            self.model, self.train_feature_data, self.train_target_data, "accuracy"
+        )
+
+        test_classification_report = myfuncs.get_classification_report_18(
+            self.model,
+            self.train_feature_data,
+            self.train_target_data,
+            self.class_names,
+        )
+
+        test_confusion_matrix = myfuncs.get_confusion_matrix_heatmap_29(
+            self.model, self.train_feature_data, self.train_target_data
+        )
+
+        model_results_text = f"Test Accuracy: {test_accuracy}\n"
+        model_results_text += (
+            f"Test Classification_report: \n{test_classification_report}\n"
+        )
+
+        return model_results_text, test_confusion_matrix
+
+    def evaluate(self):
+        return (
+            self.evaluate_train_classifier
+            if self.val_feature_data is not None
+            else self.evaluate_test_classifier()
+        )
+
+
+class RegressorEvaluator:
+    """Đánh giá model cho tập train-val hoặc tập test cho bài toán regression
+
+    Hàm chính:
+    - evaluate():
+
+    Lưu ý:
+    - KHi đánh giá 1 tập (vd: đánh giá tập test) thì truyền cho train_feature_data, train_target_data, còn val_feature_data và val_target_data **bỏ trống**
+
+    Attributes:
+        model (_type_):
+        train_feature_data (_type_):
+        train_target_data (_type_):
+        val_feature_data (_type_, optional): Defaults to None.
+        val_target_data (_type_, optional):  Defaults to None.
+
+    """
+
+    def __init__(
+        self,
+        model,
+        train_feature_data,
+        train_target_data,
+        val_feature_data=None,
+        val_target_data=None,
+    ):
+        self.model = model
+        self.train_feature_data = train_feature_data
+        self.train_target_data = train_target_data
+        self.val_feature_data = val_feature_data
+        self.val_target_data = val_target_data
 
     def evaluate_train_regressor(self):
         train_rmse = myfuncs.evaluate_model_on_one_scoring_17(
@@ -887,63 +936,23 @@ class ModelEvaluator:
 
         model_results_text = f"Train RMSE: {train_rmse}\n"
         model_results_text += f"Val RMSE: {val_rmse}\n"
-        model_results_text = f"Train MAE: {train_mae}\n"
+        model_results_text += f"Train MAE: {train_mae}\n"
         model_results_text += f"Val MAE: {val_mae}\n"
 
         return model_results_text
 
-    def evaluate_train(self):
-        return (
-            self.evaluate_train_regressor()
-            if self.class_names is None
-            else self.evaluate_train_classifier()
-        )
-
-    def evaluate_test_classifier(self):
-        test_accuracy = myfuncs.evaluate_model_on_one_scoring_17(
-            self.model, self.train_feature_data, self.train_target_data, "accuracy"
-        )
-
-        test_classification_report = myfuncs.get_classification_report_18(
-            self.model,
-            self.train_feature_data,
-            self.train_target_data,
-            self.class_names,
-        )
-
-        model_results_text = f"Test Accuracy: {test_accuracy}\n"
-        model_results_text += (
-            f"Test Classification_report: \n{test_classification_report}\n"
-        )
-
-        return model_results_text
-
     def evaluate_test_regressor(self):
-        train_rmse = myfuncs.evaluate_model_on_one_scoring_17(
+        test_rmse = myfuncs.evaluate_model_on_one_scoring_17(
             self.model, self.train_feature_data, self.train_target_data, "mse"
         )
-        train_mae = myfuncs.evaluate_model_on_one_scoring_17(
+        test_mae = myfuncs.evaluate_model_on_one_scoring_17(
             self.model, self.train_feature_data, self.train_target_data, "mae"
         )
 
-        model_results_text = f"Test RMSE: {train_rmse}\n"
-        model_results_text = f"Test MAE: {train_mae}\n"
+        model_results_text = f"Test RMSE: {test_rmse}\n"
+        model_results_text = f"Test MAE: {test_mae}\n"
 
         return model_results_text
-
-    def evaluate_test(self):
-        return (
-            self.evaluate_test_regressor()
-            if self.class_names is None
-            else self.evaluate_test_classifier()
-        )
-
-    def evaluate(self):
-        return (
-            self.evaluate_test()
-            if self.val_feature_data is None
-            else self.evaluate_train()
-        )
 
 
 class BestModelSearcher:

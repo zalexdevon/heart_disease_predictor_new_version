@@ -414,20 +414,18 @@ class DataCorrection:
             self.train_raw_data
         ).reset_index(drop=True)
 
+        target_col = myfuncs.get_target_col_from_df_26(df_transformed)
+
         # Chia thành tập train, val
         df_train, df_val = train_test_split(
             df_transformed,
             test_size=self.config.val_size,
-            stratify=df_transformed[self.config.target_col],
+            stratify=df_transformed[target_col],
             random_state=42,
         )
 
         # Get class_names
-        class_names = (
-            df_transformed[self.config.target_col].cat.categories.tolist()
-            if self.config.predictor_type == "c"
-            else None
-        )
+        class_names = df_transformed[target_col].cat.categories.tolist()
 
         # Lưu dữ liệu
         myfuncs.save_python_object(self.config.preprocessor_path, self.preprocessor)

@@ -48,7 +48,7 @@ class ModelTrainerPipeline:
         except Exception as e:
             print(f"==========ERROR: =============")
             print(f"Exception: {e}\n")
-            print("=====Traceback========\n")
+            print("=====Traceback========")
             traceback.print_exc()
 
 

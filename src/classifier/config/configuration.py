@@ -41,9 +41,6 @@ class ConfigurationManager:
             class_names_path=config.class_names_path,
             # params
             val_size=params.val_size,
-            # common params
-            target_col=self.params.target_col,
-            predictor_type=self.params.predictor_type,
         )
 
     def get_data_transformation_config(self) -> DataTransformationConfig:
@@ -67,8 +64,6 @@ class ConfigurationManager:
             do_smote=params.do_smote,
             list_before_feature_transformer=params.list_before_feature_transformer,
             list_after_feature_transformer=params.list_after_feature_transformer,
-            # common params
-            target_col=self.params.target_col,
         )
 
         return data_transformation_config
@@ -96,9 +91,11 @@ class ConfigurationManager:
             # params
             model_name=params.model_name,
             model_training_type=params.model_training_type,
+            # params to use GridSearch
             base_model=params.base_model,
             n_iter=params.n_iter,
             param_grid=params.param_grid,
+            # params to train many models
             models=params.models,
             # common params
             scoring=self.params.scoring,
@@ -140,7 +137,6 @@ class ConfigurationManager:
             root_dir=config.root_dir,
             results_path=config.results_path,
             # common params
-            target_col=self.params.target_col,
             scoring=self.params.scoring,
         )
 

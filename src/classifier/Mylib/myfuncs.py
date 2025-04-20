@@ -20,18 +20,8 @@ import pickle
 import plotly.express as px
 import pandas as pd
 import os
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
-from sklearn.svm import SVC, LinearSVC
-from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    GradientBoostingClassifier,
-    ExtraTreesClassifier,
-)
 import numpy as np
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
 from sklearn.base import clone
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA, IncrementalPCA
@@ -39,41 +29,24 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.inspection import permutation_importance
 import ast
 from collections import Counter
-from classifier.Mylib.myclasses import ColumnsDeleter
 import tensorflow as tf
 import ast
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras import Input
-from tensorflow.keras.layers import (
-    Resizing,
-    Rescaling,
-    Conv2D,
-    MaxPooling2D,
-    Flatten,
-    Dense,
-    GlobalAveragePooling2D,
-    Dropout,
-)
-
-from tensorflow.keras.optimizers import RMSprop
-from classifier.Mylib.myclasses import (
-    ConvNetBlock_XceptionVersion,
-    ConvNetBlock_Advanced,
-    ConvNetBlock,
-    ImageDataPositionAugmentation,
-    ImageDataColorAugmentation,
-    PretrainedModel,
-    ManyConvNetBlocks_XceptionVersion,
-    ManyConvNetBlocks_Advanced,
-    ManyConvNetBlocks,
-)
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from PIL import Image
 from typing import Union
 from sklearn import metrics
-
+import random
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+import pandas as pd
+import time
+import numpy as np
+import pandas as pd
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import seaborn as sns
 
 SCORINGS_PREFER_MININUM = ["log_loss", "mse", "mae"]
 SCORINGS_PREFER_MAXIMUM = ["accuracy"]
@@ -924,53 +897,53 @@ def get_describe_stats_for_numeric_cat_cols(data):
     return result
 
 
-def convert_string_to_object_4(text: str):
-    """Chuyển 1 chuỗi thành 1 đối tượng
+# def convert_string_to_object_4(text: str):
+#     """Chuyển 1 chuỗi thành 1 đối tượng
 
-    Example:
-        text = "LogisticRegression(C=144, penalty=l1, solver=saga,max_iter=10000,dual=True)"
+#     Example:
+#         text = "LogisticRegression(C=144, penalty=l1, solver=saga,max_iter=10000,dual=True)"
 
-        -> đối tượng LogisticRegression(C=144, dual=True, max_iter=10000, penalty='l1',solver='saga')
+#         -> đối tượng LogisticRegression(C=144, dual=True, max_iter=10000, penalty='l1',solver='saga')
 
-    Args:
-        text (str): _description_
-
-
-    """
-    # Tách tên lớp và tham số
-    class_name, params = text.split("(", 1)
-    params = params[:-1]
-
-    object_class = globals()[class_name]
-
-    if params == "":
-        return object_class()
-
-    # Lấy tham số của đối tượng
-    param_parts = params.split(",")
-    param_parts = [item.strip() for item in param_parts]
-    keys = [item.split("=")[0].strip() for item in param_parts]
-
-    values = [
-        do_ast_literal_eval_advanced_7(item.strip().split("=")[1].strip())
-        for item in param_parts
-    ]
-
-    params = dict(zip(keys, values))
-
-    return object_class(**params)
+#     Args:
+#         text (str): _description_
 
 
-def do_ast_literal_eval_advanced_7(text: str):
-    """Kế thừa hàm ast.literal_eval() nhưng xử lí thêm trường hợp sau
+#     """
+#     # Tách tên lớp và tham số
+#     class_name, params = text.split("(", 1)
+#     params = params[:-1]
 
-    Tuple, List dạng (1.0 ; 2.0), các phần tử cách nhau bởi dấu ; thay vì dấu ,
+#     object_class = globals()[class_name]
 
-    """
-    if ";" not in text:
-        return ast.literal_eval(text)
+#     if params == "":
+#         return object_class()
 
-    return ast.literal_eval(text.replace(";", ","))
+#     # Lấy tham số của đối tượng
+#     param_parts = params.split(",")
+#     param_parts = [item.strip() for item in param_parts]
+#     keys = [item.split("=")[0].strip() for item in param_parts]
+
+#     values = [
+#         do_ast_literal_eval_advanced_7(item.strip().split("=")[1].strip())
+#         for item in param_parts
+#     ]
+
+#     params = dict(zip(keys, values))
+
+#     return object_class(**params)
+
+
+# def do_ast_literal_eval_advanced_7(text: str):
+#     """Kế thừa hàm ast.literal_eval() nhưng xử lí thêm trường hợp sau
+
+#     Tuple, List dạng (1.0 ; 2.0), các phần tử cách nhau bởi dấu ; thay vì dấu ,
+
+#     """
+#     if ";" not in text:
+#         return ast.literal_eval(text)
+
+#     return ast.literal_eval(text.replace(";", ","))
 
 
 @ensure_annotations
@@ -1006,7 +979,7 @@ def get_different_types_cols_from_df_4(df: pd.DataFrame):
     Lưu ý: có tìm luôn cột **target**
 
     Returns:
-        (numeric_cols, numericCat_cols, cat_cols, binary_cols, nominal_cols, ordinal_cols):
+        (numeric_cols, numericCat_cols, cat_cols, binary_cols, nominal_cols, ordinal_cols, target_col):
     """
 
     cols = pd.Series(df.columns)
@@ -1440,7 +1413,7 @@ def get_classification_report_18(model, feature, target, class_names: list):
     return metrics.classification_report(target, prediction)
 
 
-def find_best_model_train_val_scoring_when_using_RandomisedSearch_GridSearch(
+def find_best_model_train_val_scoring_when_using_RandomisedSearch_GridSearch_19(
     cv_results, scoring
 ):
     """Tìm chỉ số train-val cho mô hình tốt nhất sau khi sử dụng RandomisedSearch hoặc GridSearch
@@ -1463,3 +1436,191 @@ def find_best_model_train_val_scoring_when_using_RandomisedSearch_GridSearch(
         )
 
     return train_scoring, val_scoring
+
+
+def convert_list_string_to_list_object_20(list_string: list):
+    """Chuyển list chuỗi thành list object tương ứng
+
+    Args:
+        list_string (list):
+
+    """
+    return [convert_string_to_object_4(item) for item in list_string]
+
+
+def get_classification_report_for_DLmodel_21(model, ds, class_names, batch_size):
+    """Get classification_report cho DL model
+
+    Args:
+        model (_type_): _description_
+        ds (_type_): _description_
+        class_names (_type_): _description_
+        batch_size (_type_): _description_
+
+    """
+    y_true = []
+    y_pred = []
+
+    class_names = np.asarray(class_names)
+
+    # Lặp qua các batch trong train_ds
+    for images, labels in ds:
+        # Dự đoán bằng mô hình
+        predictions = model.predict(images, batch_size=batch_size, verbose=0)
+
+        y_pred_batch = class_names[np.argmax(predictions, axis=-1)].tolist()
+        y_true_batch = class_names[np.asarray(labels)].tolist()
+        y_true += y_true_batch
+        y_pred += y_pred_batch
+
+    return metrics.classification_report(y_true, y_pred)
+
+
+def plot_train_val_metric_per_epoch_for_DLtraining_22(history, metric):
+    """Vẽ biểu đồ train-val metric theo từng epoch của Deep Learning model
+
+    Args:
+        history (_type_): _description_
+        metric (_type_): Chỉ số cần vẽ, vd: loss, accuracy, mse, ...
+
+    Returns:
+        fig: _description_
+    """
+    num_epochs = len(history["loss"])
+    epochs = range(1, num_epochs + 1)
+    epochs = [str(i) for i in epochs]
+
+    fig, ax = plt.subplots()
+    ax.plot(epochs, history[metric], color="gray", label=metric)
+    ax.plot(epochs, history["val_" + metric], color="blue", label="val_" + metric)
+    ax.set_ylim(bottom=0)
+
+    return fig
+
+
+@ensure_annotations
+def split_classification_folder_23(
+    src_dir: str, dest_dir: str, categories: list, dest_size=0.2
+):
+    """Chia classfication thư mục thành thư mục có size = **dest_size**
+
+    Thư mục classfication có dạng sau:
+    ```python
+    train/
+    ......pos/
+    ......neg/
+    ```
+
+    Args:
+        src_dir (str): Path thư mục nguồn
+        dest_dir (str): Path thư mục đích
+        categories (list): Các labels
+        dest_size (float, optional): . Defaults to 0.2.
+    """
+    for category in categories:
+        os.makedirs(os.path.join(dest_dir, category))
+        files = os.listdir(os.path.join(dest_dir, category))
+        random.Random(1337).shuffle(files)
+
+        num_dest_samples = int(dest_size * len(files))
+        dest_files = files[:num_dest_samples]
+        for file_name in dest_files:
+            shutil.move(
+                os.path.join(src_dir, category, file_name),
+                os.path.join(dest_dir, category, file_name),
+            )
+
+
+def connect_to_web_24(url: str, chromedriver_exe_path: str):
+    """Kết nối với trang web bằng Selenium
+
+    Args:
+        url (str): url của trang web
+        chromedriver_exe_path (str): đường dẫn đến file **chromedriver.exe**
+
+    Returns:
+        driver (str): driver của trang web
+    """
+    service = Service(executable_path=chromedriver_exe_path)
+    driver = webdriver.Chrome(service=service)
+    driver.get(url)
+    return driver
+
+
+def click_link_on_web_25(link, driver):
+    """Thực hiện click link trên trang web
+
+    Args:
+        link (_type_): Thẻ a nha !!!!
+        driver (_type_): driver của trang web
+    """
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable(link))
+    driver.execute_script("arguments[0].scrollIntoView(true);", link)
+    link.click()
+    time.sleep(2)
+
+
+def get_target_col_from_df_26(df):
+    """Get cột target từ df
+    Returns:
+        target_col: _description_
+    """
+
+    cols = pd.Series(df.columns)
+    target_col = cols[cols.str.endswith("target")].tolist()[0]
+    return target_col
+
+
+def get_feature_cols_and_target_col_from_df_27(df):
+    """Get các cột feature và cột target từ df
+
+    Returns:
+        (feature_cols, target_col): _description_
+    """
+    cols = pd.Series(df.columns)
+    target_col = cols[cols.str.endswith("target")]
+    feature_cols = cols.drop(target_col.index).tolist()
+    target_col = target_col.tolist()[0]
+
+    return feature_cols, target_col
+
+
+@ensure_annotations
+def get_value_with_the_meaning_28(scores: tuple, scoring):
+    """Get chỉ số theo ý nghĩa
+
+    Nếu scoring = 'accuracy' thì phải nhân cho 100 mới đúng ý nghĩa
+
+    Examples:
+    ```python
+    a= 0.34
+    b = 0.45
+    c, d = get_value_with_the_meaning((a,b), 'accuracy')
+    ```
+
+    Args:
+        scores (tuple): tuple các chỉ số cần điều chỉnh
+        scoring (str): Tên chỉ số
+
+    Returns:
+        scores: _description_
+    """
+    if scoring == "accuracy":
+        scores = (item * 100 for item in scores)
+
+    return scores
+
+
+def get_confusion_matrix_heatmap_29(model, feature, target):
+    """Vẽ confustion matrix heatmap
+
+    Returns:
+        fig: _description_
+    """
+    prediction = model.predict(feature)
+    cm = metrics.confusion_matrix(target, prediction)
+    np.fill_diagonal(cm, 0)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(cm, cbar=True, annot=True, cmap="YlOrRd", ax=ax)
+
+    return fig

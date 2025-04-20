@@ -35,7 +35,6 @@ model_trainer:
       val_target_path: artifacts/data_transformation/${P}/val_target.pkl
       class_names_path: artifacts/data_correction/class_names.pkl
 
-
       # output
       root_dir: artifacts/model_trainer/${T}
       best_model_path: artifacts/model_trainer/${T}/best_model.pkl
